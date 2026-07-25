@@ -1,0 +1,1 @@
+{"version":3,"file":"BotManager.d.ts","sourceRoot":"","sources":["../../src/managers/BotManager.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,OAAO,EAAE,MAAM,kBAAkB,CAAC;AAE3C,qBAAa,UAAU;IAEnB,OAAO,CAAC,QAAQ,CAAC,IAAI,CAA8B;IAEnD,GAAG,CAAC,GAAG,EAAE,OAAO,QAEf;IAED,MAAM,CAAC,EAAE,EAAE,MAAM,QAEhB;IAED,GAAG,CAAC,EAAE,EAAE,MAAM,uBAEb;IAED,MAAM,cAEL;CAEJ"}

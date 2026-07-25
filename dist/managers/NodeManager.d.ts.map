@@ -1,0 +1,1 @@
+{"version":3,"file":"NodeManager.d.ts","sourceRoot":"","sources":["../../src/managers/NodeManager.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,QAAQ,EAAE,MAAM,mBAAmB,CAAC;AAE7C,qBAAa,WAAW;IAEpB,OAAO,CAAC,QAAQ,CAAC,KAAK,CAA+B;IAErD,QAAQ,CAAC,IAAI,EAAE,QAAQ,QAEtB;IAED,GAAG,CAAC,EAAE,EAAE,MAAM,wBAEb;IAED,MAAM,eAEL;IAED,gBAAgB,aAcf;CAEJ"}
