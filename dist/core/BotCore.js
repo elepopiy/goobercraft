@@ -134,7 +134,7 @@ class BotCore {
         this.protocol.end(reason);
     }
     handleDisconnect() {
-        this.pathfinder.stop();
+        this.pathfinder?.stop();
         this.physics.stop();
         this.bus.emit("end");
     }

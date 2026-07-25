@@ -372,7 +372,7 @@ export class BotCore {
   private handleDisconnect():void {
 
 
-    this.pathfinder.stop();
+    this.pathfinder?.stop();
 
 
     this.physics.stop();

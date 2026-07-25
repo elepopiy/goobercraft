@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
-import { NodeManager } from "../../managers/NodeManager";
 export declare class NodeController {
-    static nodeManager: NodeManager;
-    static getNodes(req: Request, res: Response): void;
+    static register(req: Request, res: Response): Response<any, Record<string, any>>;
+    static getNodes(req: Request, res: Response): Response<any, Record<string, any>>;
 }
 //# sourceMappingURL=NodeController.d.ts.map
