@@ -774,6 +774,12 @@
       background: rgba(6, 182, 212, 0.12);
     }
 
+    .bot-chip.system {
+      color: var(--color-warning);
+      border-color: rgba(245, 158, 11, 0.5);
+      background: rgba(245, 158, 11, 0.12);
+    }
+
     .btn-stop {
       color: var(--color-danger);
       cursor: pointer;
@@ -1584,13 +1590,44 @@
     const MY_OWNER_TOKEN = getOwnerToken();
     console.log("Session authenticated. Token: " + MY_OWNER_TOKEN);
 
-    // Global State
+    // Global State - starts completely empty, populated only from the real backend
     let state = {
       nodes: [],
-      bots: [],
-      logs: [],
-      isMocking: true // Set to true to simulate data without a real backend
+      bots: [], // holds ONLY real bots returned by the backend
+      logs: []
     };
+
+    // Sistem Botu oranı: her node kapasitesinin %10'u kadar korumalı sistem botu
+    const SYSTEM_BOT_RATIO = 0.1;
+
+    function getSystemBotCount(node) {
+      return Math.floor((node.maxBots || 0) * SYSTEM_BOT_RATIO);
+    }
+
+    // Bu botlar backend'e hiç gönderilmez; sadece görüntü/kapasite amaçlı, sabit ve silinemez
+    function getSystemBotsForNode(node) {
+      const count = getSystemBotCount(node);
+      const bots = [];
+      for (let i = 0; i < count; i++) {
+        bots.push({
+          id: `sys_${node.id}_${i}`,
+          nodeId: node.id,
+          username: `SYS-Guardian-${String(i + 1).padStart(2, '0')}`,
+          host: 'internal.system',
+          ownerToken: 'SYSTEM',
+          isSystem: true
+        });
+      }
+      return bots;
+    }
+
+    // Bir node'a ait TÜM botları döner: korumalı sistem botları + backend'den gelen gerçek botlar
+    function getAllBotsForNode(nodeId) {
+      const node = state.nodes.find(n => n.id === nodeId);
+      if (!node) return [];
+      const realBots = state.bots.filter(b => (b.nodeId || b.node_id) === nodeId);
+      return [...getSystemBotsForNode(node), ...realBots];
+    }
 
     /* --------------------------------------------------------------------------
        B. NAVIGATION & UI MANAGEMENT
@@ -1670,55 +1707,44 @@
     }
 
     /* --------------------------------------------------------------------------
-       C. MOCK DATA GENERATION (Since no real backend is provided)
+       C. REAL BACKEND SYNCHRONIZATION (Nodes + Bots)
        -------------------------------------------------------------------------- */
-    const RACK_NAMES = ['Alpha-Core', 'Beta-Nexus', 'Gamma-Matrix', 'Delta-Void', 'Epsilon-Grid', 'Zeta-Prime', 'Omega-Node'];
-    
-    function initMockData() {
-      // Create 6-8 fake nodes
-      const nodeCount = 6 + Math.floor(Math.random() * 3);
-      for(let i=0; i<nodeCount; i++) {
-        state.nodes.push({
-          id: 'node_' + Math.random().toString(36).substr(2, 9),
-          name: RACK_NAMES[i % RACK_NAMES.length] + '-' + (i+1),
-          maxBots: 10 + Math.floor(Math.random() * 15),
-          cpuUsage: Math.floor(Math.random() * 40) + 10,
-          ramUsage: (Math.random() * 4 + 1).toFixed(1) + ' GB',
-          uptime: (98 + Math.random() * 1.99).toFixed(2) + '%'
-        });
-      }
-      
-      // Create some initial bots owned by 'others' and maybe one by us
-      state.nodes.forEach(node => {
-        const botCount = Math.floor(Math.random() * (node.maxBots * 0.7)); // Up to 70% full
-        for(let j=0; j<botCount; j++) {
-          createMockBot(node.id, false);
+    async function fetchNodes() {
+      try {
+        const res = await fetch('/api/nodes');
+        const data = await res.json();
+        if (data.success) {
+          state.nodes = (data.nodes || []).map(n => ({
+            id: n.id,
+            name: n.name,
+            maxBots: n.maxBots,
+            cpuUsage: n.cpuUsage,
+            ramUsage: n.ramUsage,
+            uptime: n.online ? '100.00%' : '0.00%'
+          }));
         }
-      });
-      
-      // Add one bot owned by current user just to show the UI difference
-      if(state.nodes.length > 0) {
-        createMockBot(state.nodes[0].id, true, "GoobIsBackk_Bot");
+      } catch (err) {
+        console.error('Node fetch failed:', err);
+        addLogEntry('error', "Node listesi backend'ten cekilemedi.");
       }
-      
-      updateUI();
-      addLogEntry('info', 'System initialized. Loaded ' + state.nodes.length + ' quantum nodes.');
-      showToast('success', 'System Ready', 'Connected to Quantum DataCenter backend.');
     }
 
-    function createMockBot(nodeId, isMine = false, specificName = null) {
-      const names = ['Miner_Bot', 'AFK_Pool', 'Trader_Joe', 'PvP_Master', 'Looey_Clone', 'Builder_X'];
-      const hosts = ['mc.hypixel.net', '2b2t.org', 'farlands.cc', 'localhost'];
-      
-      const bot = {
-        id: 'bot_' + Math.random().toString(36).substr(2, 9),
-        nodeId: nodeId,
-        username: specificName || names[Math.floor(Math.random() * names.length)] + '_' + Math.floor(Math.random()*999),
-        host: hosts[Math.floor(Math.random() * hosts.length)],
-        ownerToken: isMine ? MY_OWNER_TOKEN : 'other_user_' + Math.random()
-      };
-      state.bots.push(bot);
-      return bot;
+    async function fetchBots() {
+      try {
+        const res = await fetch('/api/bots');
+        const data = await res.json();
+        if (data.success) {
+          state.bots = data.bots || [];
+        }
+      } catch (err) {
+        console.error('Bot fetch failed:', err);
+        addLogEntry('error', "Bot listesi backend'ten cekilemedi.");
+      }
+    }
+
+    async function refreshData() {
+      await Promise.all([fetchNodes(), fetchBots()]);
+      updateUI();
     }
 
     /* --------------------------------------------------------------------------
@@ -1729,63 +1755,73 @@
       const submitBtn = document.getElementById('submitBtn');
       const username = document.getElementById('botUsername').value.trim();
       const host = document.getElementById('botHost').value.trim();
-      
+      const port = parseInt(document.getElementById('botPort').value, 10) || 25565;
+
       submitBtn.disabled = true;
       submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> ALLOCATING RESOURCES...';
 
-      // Find node with most space
-      let bestNode = null;
-      let maxFreeSpace = -1;
-      
-      state.nodes.forEach(n => {
-        const botsInNode = state.bots.filter(b => b.nodeId === n.id).length;
-        const free = n.maxBots - botsInNode;
-        if(free > maxFreeSpace) {
-          maxFreeSpace = free;
-          bestNode = n;
-        }
-      });
+      try {
+        const res = await fetch('/api/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, host, port, ownerToken: MY_OWNER_TOKEN })
+        });
+        const data = await res.json();
 
-      // Simulate network delay
-      setTimeout(() => {
-        if(!bestNode || maxFreeSpace <= 0) {
-          showToast('error', 'Deployment Failed', 'No available capacity in server clusters.');
-        } else {
-          // Success
-          createMockBot(bestNode.id, true, username);
-          updateUI();
+        if (data.success) {
+          await refreshData();
           closeModals();
           document.getElementById('addBotForm').reset();
-          showToast('success', 'Instance Deployed', `${username} successfully booted on ${bestNode.name}.`);
-          addLogEntry('success', `New bot [${username}] provisioned to [${bestNode.name}]`);
-          
-          // Spike CPU briefly
-          bestNode.cpuUsage = Math.min(100, bestNode.cpuUsage + 25);
+          document.getElementById('botPort').value = 25565;
+          showToast('success', 'Instance Deployed', data.message || `${username} successfully booted.`);
+          addLogEntry('success', `New bot [${username}] provisioned.`);
+        } else {
+          showToast('error', 'Deployment Failed', data.message || 'Bot olusturulamadi.');
+          addLogEntry('error', data.message || 'Bot olusturma basarisiz.');
         }
-        
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="fa-solid fa-bolt"></i> INITIALIZE SEQUENCE';
-      }, 1200);
+      } catch (err) {
+        console.error('Deploy request failed:', err);
+        showToast('error', 'Connection Error', "Backend'e ulasilamadi (/api/create).");
+        addLogEntry('error', 'API baglanti hatasi: /api/create');
+      }
+
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fa-solid fa-bolt"></i> INITIALIZE SEQUENCE';
     }
 
-    function stopBot(botId, username, event) {
+    async function stopBot(botId, username, event) {
       if(event) event.stopPropagation(); // Prevent opening inspector
-      
+
+      // System-protected bots can never be terminated
+      if(String(botId).startsWith('sys_')) return;
+
       if(!confirm(`Are you sure you want to terminate instance '${username}'?`)) return;
 
-      const botIndex = state.bots.findIndex(b => b.id === botId);
-      if(botIndex > -1) {
-        state.bots.splice(botIndex, 1);
-        updateUI();
-        showToast('info', 'Instance Terminated', `${username} has been stopped.`);
-        addLogEntry('warn', `Instance [${username}] was forcefully terminated by owner.`);
-        
-        // Refresh inspector if open
-        const inspectorModal = document.getElementById('inspectorModal');
-        if (inspectorModal.classList.contains('show')) {
-          const openNodeId = inspectorModal.getAttribute('data-node-id');
-          if (openNodeId) inspectNode(openNodeId);
+      try {
+        const res = await fetch('/api/stop', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: botId, ownerToken: MY_OWNER_TOKEN })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          await refreshData();
+          showToast('info', 'Instance Terminated', data.message || `${username} has been stopped.`);
+          addLogEntry('warn', `Instance [${username}] was forcefully terminated by owner.`);
+
+          // Refresh inspector if open
+          const inspectorModal = document.getElementById('inspectorModal');
+          if (inspectorModal.classList.contains('show')) {
+            const openNodeId = inspectorModal.getAttribute('data-node-id');
+            if (openNodeId) inspectNode(openNodeId);
+          }
+        } else {
+          showToast('error', 'Termination Failed', data.message || 'Bot durdurulamadi.');
         }
+      } catch (err) {
+        console.error('Stop request failed:', err);
+        showToast('error', 'Connection Error', "Backend'e ulasilamadi (/api/stop).");
       }
     }
 
@@ -1793,8 +1829,8 @@
       const node = state.nodes.find(n => n.id === nodeId);
       if(!node) return;
 
-      const nodeBots = state.bots.filter(b => b.nodeId === nodeId);
-      
+      const nodeBots = getAllBotsForNode(nodeId);
+
       document.getElementById('inspectorNodeTitle').innerHTML = `<i class="fa-solid fa-server"></i> [RACK] ${node.name}`;
       document.getElementById('inspectorCpu').innerText = `${node.cpuUsage}%`;
       document.getElementById('inspectorRam').innerText = node.ramUsage;
@@ -1809,21 +1845,32 @@
         listContainer.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 2rem;">No active neural connections detected in this rack.</div>`;
       } else {
         listContainer.innerHTML = nodeBots.map(b => {
-          const isMine = b.ownerToken === MY_OWNER_TOKEN;
+          const isSystem = b.isSystem === true;
+          const isMine = !isSystem && b.ownerToken === MY_OWNER_TOKEN;
+
+          let ownerControl;
+          if (isSystem) {
+            ownerControl = `<span style="font-size: 0.7rem; color: var(--color-warning); background: rgba(245, 158, 11, 0.1); padding: 3px 8px; border-radius: 4px;"><i class="fa-solid fa-shield-halved"></i> SYSTEM PROTECTED</span>`;
+          } else if (isMine) {
+            ownerControl = `<button class="btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.75rem; background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4); color: var(--color-danger); box-shadow: none;" onclick="stopBot('${b.id}', '${b.username}', event)"><i class="fa-solid fa-power-off"></i> TERMINATE</button>`;
+          } else {
+            ownerControl = `<span style="font-size: 0.7rem; color: var(--text-dim); background: rgba(255,255,255,0.05); padding: 3px 8px; border-radius: 4px;"><i class="fa-solid fa-lock"></i> OWNED BY ANOTHER USER</span>`;
+          }
+
+          const accentColor = isSystem ? 'var(--color-warning)' : (isMine ? 'var(--color-cyan)' : 'var(--text-main)');
+
           return `
-            <div class="inspector-bot-item" style="${isMine ? 'border-left: 3px solid var(--color-cyan);' : ''}">
+            <div class="inspector-bot-item" style="${isMine ? 'border-left: 3px solid var(--color-cyan);' : (isSystem ? 'border-left: 3px solid var(--color-warning);' : '')}">
               <div>
-                <span style="color: ${isMine ? 'var(--color-cyan)' : 'var(--text-main)'}; font-weight: 700; font-size: 1.05rem;">
-                  <i class="fa-solid fa-robot" style="margin-right: 8px; font-size: 0.9rem;"></i>${b.username}
+                <span style="color: ${accentColor}; font-weight: 700; font-size: 1.05rem;">
+                  <i class="fa-solid ${isSystem ? 'fa-shield-halved' : 'fa-robot'}" style="margin-right: 8px; font-size: 0.9rem;"></i>${b.username}
                 </span>
                 <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 4px;">
                   Target: <span style="color: var(--text-muted)">${b.host}</span>
                 </div>
               </div>
               <div>
-                ${isMine 
-                  ? `<button class="btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.75rem; background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4); color: var(--color-danger); box-shadow: none;" onclick="stopBot('${b.id}', '${b.username}', event)"><i class="fa-solid fa-power-off"></i> TERMINATE</button>` 
-                  : `<span style="font-size: 0.7rem; color: var(--text-dim); background: rgba(255,255,255,0.05); padding: 3px 8px; border-radius: 4px;"><i class="fa-solid fa-lock"></i> SYSTEM PROTECTED</span>`}
+                ${ownerControl}
               </div>
             </div>
           `;
@@ -1837,15 +1884,16 @@
        E. UI UPDATES & RENDERERS
        -------------------------------------------------------------------------- */
     function updateUI() {
-      // 1. Global Headers
+      // 1. Global Headers (includes protected system bots, since they occupy real capacity)
+      const totalBotsEverywhere = state.nodes.reduce((acc, n) => acc + getAllBotsForNode(n.id).length, 0);
       document.getElementById('global-nodes').innerText = state.nodes.length;
-      document.getElementById('global-bots').innerText = state.bots.length;
-      document.getElementById('dash-bot-count').innerText = state.bots.length;
+      document.getElementById('global-bots').innerText = totalBotsEverywhere;
+      document.getElementById('dash-bot-count').innerText = totalBotsEverywhere;
 
       // 2. Render Node Grid
       const container = document.getElementById('nodes-container');
       container.innerHTML = state.nodes.map(node => {
-        const nodeBots = state.bots.filter(b => b.nodeId === node.id);
+        const nodeBots = getAllBotsForNode(node.id);
         const currentBots = nodeBots.length;
         const percentage = Math.min((currentBots / node.maxBots) * 100, 100);
         
@@ -1855,10 +1903,13 @@
 
         const botChips = nodeBots.length > 0 
           ? nodeBots.slice(0, 12).map(b => { // Show max 12 chips so it doesn't break layout
-              const isMine = b.ownerToken === MY_OWNER_TOKEN;
+              const isSystem = b.isSystem === true;
+              const isMine = !isSystem && b.ownerToken === MY_OWNER_TOKEN;
+              const chipIcon = isSystem ? 'fa-shield-halved' : (isMine ? 'fa-robot' : 'fa-microchip');
+              const chipTitle = isSystem ? 'System Protected Bot' : `${b.username} on ${b.host}`;
               return `
-                <span class="bot-chip ${isMine ? 'mine' : ''}" title="${b.username} on ${b.host}">
-                  <i class="fa-solid ${isMine ? 'fa-robot' : 'fa-microchip'}"></i> ${b.username.substring(0, 8)}${b.username.length > 8 ? '..' : ''}
+                <span class="bot-chip ${isMine ? 'mine' : ''} ${isSystem ? 'system' : ''}" title="${chipTitle}">
+                  <i class="fa-solid ${chipIcon}"></i> ${b.username.substring(0, 8)}${b.username.length > 8 ? '..' : ''}
                   ${isMine ? `<span class="btn-stop" title="Force Kill" onclick="stopBot('${b.id}', '${b.username}', event)"><i class="fa-solid fa-xmark"></i></span>` : ''}
                 </span>
               `;
@@ -2015,14 +2066,8 @@
       const newVal = Math.floor(Math.random() * 40) + 30; // 30-70%
       lastBar.style.height = newVal + '%';
       lastBar.setAttribute('data-val', newVal);
-      
-      // Also slightly fluctuate CPU on nodes
-      state.nodes.forEach(n => {
-        n.cpuUsage = Math.max(5, Math.min(99, n.cpuUsage + (Math.floor(Math.random() * 11) - 5))); // +/- 5%
-      });
-      if(document.getElementById('view-nodes').classList.contains('active')){
-         updateUI(); // Keep visual bars updated if view is active
-      }
+      // Node CPU/RAM values are no longer faked here - they come from the real
+      // backend poll in refreshData(), which runs on its own 3s interval.
     }, 2000);
 
     /* --------------------------------------------------------------------------
@@ -2120,11 +2165,18 @@
       requestAnimationFrame(animateNetwork);
     }
     
-    // Boot sequence
+    // Boot sequence - system starts empty and pulls everything from the real backend
     window.onload = () => {
       resizeCanvas();
       animateNetwork();
-      setTimeout(initMockData, 800); // Fake load time
+
+      refreshData().then(() => {
+        addLogEntry('info', 'System initialized. Connected to live backend (' + state.nodes.length + ' node(s)).');
+        showToast('success', 'System Ready', 'Connected to GooberCraft backend.');
+      });
+
+      // Backend'den her 3 saniyede bir güncel node/bot listesini çek ve UI'ı senkronize et
+      setInterval(refreshData, 3000);
     };
 
   </script>
