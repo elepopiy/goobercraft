@@ -23,30 +23,32 @@ function resolveOptions(options) {
         port: options.port ?? DEFAULTS.port,
         auth: options.auth ?? DEFAULTS.auth,
         version: options.version ?? DEFAULTS.version,
-        viewDistance: options.viewDistance ??
-            DEFAULTS.viewDistance,
-        checkTimeoutInterval: options.checkTimeoutInterval ??
-            DEFAULTS.checkTimeoutInterval,
-        respawnOnDeath: options.respawnOnDeath ??
-            DEFAULTS.respawnOnDeath,
+        viewDistance: options.viewDistance ?? DEFAULTS.viewDistance,
+        checkTimeoutInterval: options.checkTimeoutInterval ?? DEFAULTS.checkTimeoutInterval,
+        respawnOnDeath: options.respawnOnDeath ?? DEFAULTS.respawnOnDeath,
     };
 }
 /**
- * GooberCraft Bot Factory
+ * GooberCraft Bot Fabrika Fonksiyonu
  */
 async function createBot(options) {
     const resolved = resolveOptions(options);
-    // 1. En uygun Node'u bul
+    // 1. En uygun Node'u seç (En boş olanı getirir)
     const node = managers_1.manager.nodes.getAvailableNode();
     const bot = new Bot_1.Bot(resolved);
     if (node) {
         bot.setNodeId(node.id);
         // Node üzerindeki bot sayacını artır
-        node.currentBots = (node.currentBots || 0) + 1;
-        // Node nesnesinde url tanımı opsiyonel veya custom olabilir
+        managers_1.manager.nodes.incrementBotCount(node.id);
         const nodeUrl = node.url;
-        // 2. Uzak Node ise Webhook/HTTP ile başlat
-        if (node.id !== "local" && nodeUrl) {
+        // Yerel node tespiti: "local", "master-node-1" veya localhost adresleri HTTP isteği atmaz
+        const isLocalNode = node.id === "local" ||
+            node.id === "master-node-1" ||
+            !nodeUrl ||
+            nodeUrl.includes("localhost") ||
+            nodeUrl.includes("127.0.0.1");
+        // 2. Uzak İşçi (Worker) Node ise Webhook/HTTP ile tetikle
+        if (!isLocalNode) {
             try {
                 const response = await fetch(`${nodeUrl}/api/bots/spawn`, {
                     method: "POST",
@@ -66,17 +68,17 @@ async function createBot(options) {
             }
         }
         else {
+            // Yerel Node ise doğrudan soket bağlantısını başlat
             bot.connect();
         }
     }
     else {
-        // Müsait Node yoksa yerelde çalıştır
+        // Müsait Node bulunamadıysa varsayılan olarak yerelde çalıştır
         bot.setNodeId("local");
         bot.connect();
     }
-    // Guaranteed string
     const assignedNodeId = bot.getNodeId() || "local";
-    // 3. Master state kaydı
+    // 3. Master durum kaydı
     managers_1.manager.bots.add({
         id: bot.getId(),
         username: resolved.username,
