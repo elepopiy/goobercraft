@@ -8,9 +8,12 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "dev": "ts-node examples/hello.ts"
+    "dev": "ts-node examples/hello.ts",
+    "start": "node dist/server.js"
   },
   "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
     "minecraft-data": "^3.78.0",
     "minecraft-protocol": "^1.66.2",
     "prismarine-block": "^1.23.0",
