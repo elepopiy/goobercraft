@@ -1770,7 +1770,7 @@
       submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> ALLOCATING RESOURCES...';
 
       try {
-        const res = await fetch(`${API_BASE}/api/create`, {
+        const res = await fetch(`${API_BASE}/api/bots/create`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, host, port, ownerToken: MY_OWNER_TOKEN })
@@ -1795,8 +1795,8 @@
         }
       } catch (err) {
         console.error('Deploy request failed:', err);
-        showToast('error', 'Connection Error', `Backend'e ulasilamadi (${API_BASE}/api/create): ${err.message}`);
-        addLogEntry('error', `API baglanti hatasi: /api/create - ${err.message}`);
+        showToast('error', 'Connection Error', `Backend'e ulasilamadi (${API_BASE}/api/bots/create): ${err.message}`);
+        addLogEntry('error', `API baglanti hatasi: /api/bots/create - ${err.message}`);
       }
 
       submitBtn.disabled = false;
@@ -1813,7 +1813,7 @@
       if(!confirm(`Are you sure you want to terminate instance '${username}'?`)) return;
 
       try {
-        const res = await fetch(`${API_BASE}/api/stop`, {
+        const res = await fetch(`${API_BASE}/api/bots/stop`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id: botId, ownerToken: MY_OWNER_TOKEN })
@@ -1841,7 +1841,7 @@
         }
       } catch (err) {
         console.error('Stop request failed:', err);
-        showToast('error', 'Connection Error', `Backend'e ulasilamadi (${API_BASE}/api/stop): ${err.message}`);
+        showToast('error', 'Connection Error', `Backend'e ulasilamadi (${API_BASE}/api/bots/stop): ${err.message}`);
       }
     }
 
