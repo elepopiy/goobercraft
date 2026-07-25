@@ -54,6 +54,10 @@ export declare class BotCore {
     connect(): void;
     disconnect(reason?: string): void;
     private handleDisconnect;
+    /**
+     * Çökme riskini tamamen önlemek için güvenli durdurma metodu
+     */
+    private safeStop;
     getUptime(): number;
     getBotManager(): BotManager;
     getNodeManager(): NodeManager;

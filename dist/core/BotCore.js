@@ -56,60 +56,42 @@ class BotCore {
     pathfinder;
     constructor(options) {
         this.options = options;
-        this.protocol =
-            new ProtocolManager_1.ProtocolManager(options, this.bus);
-        this.keepAlive =
-            new KeepAliveManager_1.KeepAliveManager(this.bus, this.protocol);
-        this.login =
-            new LoginManager_1.LoginManager(this.bus, this.protocol, options);
-        this.teleport =
-            new TeleportManager_1.TeleportManager(this.bus, this.protocol);
-        this.spawnManager =
-            new SpawnManager_1.SpawnManager(this.bus, this.teleport);
-        this.healthManager =
-            new HealthManager_1.HealthManager(this.bus);
-        this.foodManager =
-            new FoodManager_1.FoodManager(this.bus);
-        this.experience =
-            new ExperienceManager_1.ExperienceManager(this.bus);
-        this.chatManager =
-            new ChatManager_1.ChatManager(this.bus, this.protocol);
-        this.entities =
-            new EntityManager_1.EntityManager(this.bus);
-        this.players =
-            new PlayerManager_1.PlayerManager(this.bus, this.entities);
-        this.inventoryManager =
-            new InventoryManager_1.InventoryManager(this.bus, this.protocol);
-        this.worldManager =
-            new WorldManager_1.WorldManager(this.bus, this.protocol, options.version);
-        this.time =
-            new TimeManager_1.TimeManager(this.bus);
-        this.weather =
-            new WeatherManager_1.WeatherManager(this.bus);
-        this.respawn =
-            new RespawnManager_1.RespawnManager(this.bus, this.protocol, options.respawnOnDeath);
-        this.movement =
-            new MovementManager_1.MovementManager(this.bus, this.protocol, this.teleport, this.worldManager.blocks);
-        this.physics =
-            new PhysicsManager_1.PhysicsManager(this.bus, this.protocol, this.teleport, this.movement, this.worldManager);
+        this.protocol = new ProtocolManager_1.ProtocolManager(options, this.bus);
+        this.keepAlive = new KeepAliveManager_1.KeepAliveManager(this.bus, this.protocol);
+        this.login = new LoginManager_1.LoginManager(this.bus, this.protocol, options);
+        this.teleport = new TeleportManager_1.TeleportManager(this.bus, this.protocol);
+        this.spawnManager = new SpawnManager_1.SpawnManager(this.bus, this.teleport);
+        this.healthManager = new HealthManager_1.HealthManager(this.bus);
+        this.foodManager = new FoodManager_1.FoodManager(this.bus);
+        this.experience = new ExperienceManager_1.ExperienceManager(this.bus);
+        this.chatManager = new ChatManager_1.ChatManager(this.bus, this.protocol);
+        this.entities = new EntityManager_1.EntityManager(this.bus);
+        this.players = new PlayerManager_1.PlayerManager(this.bus, this.entities);
+        this.inventoryManager = new InventoryManager_1.InventoryManager(this.bus, this.protocol);
+        this.worldManager = new WorldManager_1.WorldManager(this.bus, this.protocol, options.version);
+        this.time = new TimeManager_1.TimeManager(this.bus);
+        this.weather = new WeatherManager_1.WeatherManager(this.bus);
+        this.respawn = new RespawnManager_1.RespawnManager(this.bus, this.protocol, options.respawnOnDeath);
+        this.movement = new MovementManager_1.MovementManager(this.bus, this.protocol, this.teleport, this.worldManager.blocks);
+        this.physics = new PhysicsManager_1.PhysicsManager(this.bus, this.protocol, this.teleport, this.movement, this.worldManager);
         // =====================================================
-        // PATHFINDER BAĞLANTISI
+        // PATHFINDER BAĞLANTISI (Self referansı ile 'this' koruması)
         // =====================================================
-        this.pathfinder =
-            new Pathfinder_1.Pathfinder({
-                get position() {
-                    return this.teleport.position;
-                },
-                look(yaw, pitch) {
-                    this.movement.look(yaw, pitch);
-                },
-                move(direction, state) {
-                    this.movement.setControlState(direction, state);
-                },
-                stop() {
-                    this.movement.stop();
-                }
-            }, this.worldManager);
+        const self = this;
+        this.pathfinder = new Pathfinder_1.Pathfinder({
+            get position() {
+                return self.teleport?.position;
+            },
+            look(yaw, pitch) {
+                self.movement?.look(yaw, pitch);
+            },
+            move(direction, state) {
+                self.movement?.setControlState(direction, state);
+            },
+            stop() {
+                self.movement?.stop();
+            }
+        }, this.worldManager);
         this.bus.on("login", () => {
             if (this.login.playerEntityId !== null) {
                 this.movement.setPlayerEntityId(this.login.playerEntityId);
@@ -129,14 +111,29 @@ class BotCore {
         this.protocol.connect();
     }
     disconnect(reason) {
-        this.pathfinder.stop();
-        this.physics.stop();
+        this.safeStop();
         this.protocol.end(reason);
     }
     handleDisconnect() {
-        this.pathfinder?.stop();
-        this.physics.stop();
+        this.safeStop();
         this.bus.emit("end");
+    }
+    /**
+     * Çökme riskini tamamen önlemek için güvenli durdurma metodu
+     */
+    safeStop() {
+        try {
+            this.pathfinder?.stop?.();
+        }
+        catch (e) {
+            // Pathfinder henüz ilklendirilmediyse hatayı yut
+        }
+        try {
+            this.physics?.stop?.();
+        }
+        catch (e) {
+            // Physics durdurulurken oluşabilecek hataları engelle
+        }
     }
     getUptime() {
         return Date.now() - this.startedAt;
