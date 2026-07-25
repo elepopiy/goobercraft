@@ -4,9 +4,9 @@ import os from "os";
 
 export class NodeController {
   public static getNodes(req: Request, res: Response) {
-    // 1. Master Node yoksa anında canlı kaydet
     let nodesList = manager.nodes.getAllNodes();
 
+    // 1. Master Node yoksa kaydet
     if (!nodesList || nodesList.length === 0) {
       manager.nodes.registerNode({
         id: "master-node-1",
@@ -17,22 +17,22 @@ export class NodeController {
       nodesList = manager.nodes.getAllNodes();
     }
 
-    // 2. Gerçek CPU ve RAM kullanımını canlı hesapla
+    // 2. Sistem Yükünü ve CPU/RAM Kullanımını Hesapla
     const totalMem = os.totalmem();
     const freeMem = os.freemem();
     const usedMemMB = Math.round((totalMem - freeMem) / (1024 * 1024));
     
-    // CPU Oranı (loadavg üzerinden basit orantı)
-    const cpus = os.cpus().length;
-    const load = os.loadavg()[0];
-    const cpuPercent = Math.min(Math.round((load / cpus) * 100) || 5, 100);
+    const cpus = os.cpus().length || 1;
+    const load = os.loadavg()[0] || 0;
+    const cpuPercent = Math.min(Math.round((load / cpus) * 100) || 12, 100);
 
-    // Her bir Node objesine gerçek metrikleri ekle
+    // Her bir Node kasasına canlı metrik verilerini entegre et
     const enrichedNodes = nodesList.map(node => ({
       ...node,
       online: true,
       cpuUsage: cpuPercent,
-      ramUsage: `${usedMemMB} MB`
+      ramUsage: `${usedMemMB} MB`,
+      maxBots: node.maxBots || 10
     }));
 
     return res.json({

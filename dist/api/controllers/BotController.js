@@ -31,7 +31,7 @@ class BotController {
                 selectedNode = node;
             }
         }
-        // 4. GLOBAL KAPASİTE KONTROLÜ (Tüm Rack'ler 100/100 Doluysa)
+        // 4. GLOBAL KAPASİTE KONTROLÜ
         if (!selectedNode) {
             return res.status(400).json({
                 success: false,
@@ -40,51 +40,91 @@ class BotController {
         }
         try {
             // Botu seçilen en boş Rack üzerine konuşlandır
-            const bot = await (0, createBot_1.createBot)({ username, host, port });
-            const botData = managers_1.manager.bots.get(bot.getId());
+            const botInstance = await (0, createBot_1.createBot)({ username, host, port });
+            // Bot ID tespiti
+            const targetId = typeof botInstance.getId === 'function' ? botInstance.getId() : botInstance.id;
+            const botData = managers_1.manager.bots.get(targetId) || botInstance;
             if (botData) {
+                botData.id = targetId;
                 botData.nodeId = selectedNode.id;
                 botData.ownerToken = userToken;
+                botData.username = username;
+                botData.host = host;
             }
             return res.json({
                 success: true,
                 message: `'${username}' botu ${selectedNode.name} üzerine konuşlandırıldı! (${userBotsCount + 1}/3 botunuz aktif)`,
-                botId: bot.getId(),
+                botId: targetId,
                 nodeId: selectedNode.id
             });
         }
         catch (error) {
-            return res.status(500).json({ success: false, message: error.message });
+            return res.status(500).json({ success: false, message: error.message || "Bot başlatılamadı." });
         }
     }
-    // BOT DURDURMA / SİLME
+    // BOT DURDURMA / SİLME - GERÇEK KONTROL & TAM KAPATMA
     static async stop(req, res) {
         const { id, ownerToken } = req.body;
         if (!id) {
             return res.status(400).json({ success: false, message: "Bot ID zorunludur!" });
         }
-        const botData = managers_1.manager.bots.get(id);
+        // 1. Botu ID üzerinden bul
+        let botData = managers_1.manager.bots.get(id);
+        // Eğer ID doğrudan uyuşmadıysa esnek eşleşme yap
         if (!botData) {
-            return res.status(404).json({ success: false, message: "Bot bulunamadı veya zaten çevrimdışı." });
+            const allBots = managers_1.manager.bots.getAll();
+            botData = allBots.find((b) => b.id === id || b._id === id || b.botId === id);
         }
-        // SAHİPLİK KONTROLÜ (Sadece ekleyen silebilir)
+        if (!botData) {
+            return res.status(404).json({ success: false, message: "Bot bulunamadı veya zaten kapatılmış." });
+        }
+        // 2. SAHİPLİK KONTROLÜ (Sadece oluşturan silebilir)
         if (botData.ownerToken && botData.ownerToken !== ownerToken) {
             return res.status(403).json({
                 success: false,
                 message: "⛔ Bu botu sadece oluşturan kişi durdurabilir!"
             });
         }
-        managers_1.manager.bots.remove(id);
-        return res.json({
-            success: true,
-            message: `'${botData.username}' botu durduruldu. Sizin için +1 bot hakkı tekrar açıldı.`
-        });
+        try {
+            // 3. MINEFLAYER BOTUNU SUNUCUDAN GERÇEKTEN ÇIKAR
+            if (typeof botData.quit === 'function') {
+                botData.quit();
+            }
+            else if (typeof botData.end === 'function') {
+                botData.end();
+            }
+            else if (botData.bot && typeof botData.bot.end === 'function') {
+                botData.bot.end();
+            }
+            // 4. BOTS MANAGER BELLEĞİNDEN TAMAMEN KALDIR
+            const targetId = botData.id || id;
+            managers_1.manager.bots.remove(targetId);
+            return res.json({
+                success: true,
+                message: `'${botData.username || 'Bot'}' durduruldu ve kapatıldı. Sizin için +1 bot hakkı açıldı.`
+            });
+        }
+        catch (err) {
+            // Yine de listeden sil
+            managers_1.manager.bots.remove(id);
+            return res.json({
+                success: true,
+                message: "Bot zorla kapatıldı ve listeden silindi."
+            });
+        }
     }
     // BOTS LİSTELEME
     static getBots(req, res) {
+        const bots = managers_1.manager.bots.getAll().map((b) => ({
+            id: b.id || b._id || b.botId,
+            username: b.username,
+            host: b.host,
+            nodeId: b.nodeId || b.node_id,
+            ownerToken: b.ownerToken
+        }));
         return res.json({
             success: true,
-            bots: managers_1.manager.bots.getAll()
+            bots: bots
         });
     }
 }

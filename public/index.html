@@ -2,320 +2,354 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <!-- Tarayıcı Önbelleğini (Cache) Tamamen Engelleme -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GooberCraft Master - Data Center Cluster</title>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <title>GooberCraft Master - Quantum Data Center</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,500;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+  
   <style>
     :root {
-      --bg-color: #050811;
-      --card-bg: rgba(13, 18, 30, 0.85);
-      --card-border: #1e293b;
-      --rack-border: #334155;
+      --bg: #030712;
+      --card-bg: rgba(15, 23, 42, 0.75);
+      --card-border: rgba(51, 65, 85, 0.5);
+      --rack-border: rgba(99, 102, 241, 0.3);
       --accent: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.4);
       --cyan: #06b6d4;
+      --cyan-glow: rgba(6, 182, 212, 0.4);
       --green: #10b981;
+      --green-glow: rgba(16, 185, 129, 0.4);
       --yellow: #f59e0b;
-      --red: #ef4444;
+      --red: #f43f5e;
+      --red-glow: rgba(244, 63, 94, 0.4);
       --text: #f8fafc;
-      --text-muted: #64748b;
+      --text-muted: #94a3b8;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
 
     body {
-      background-color: var(--bg-color);
-      background-image: 
-        radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.12) 0%, transparent 70%),
-        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-      background-size: 100% 100%, 30px 30px, 30px 30px;
+      background-color: var(--bg);
       color: var(--text);
       min-height: 100vh;
-      padding: 2rem;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* BİRBİRİNE BAĞLI CANLI SUNUCU AĞI CANVAS */
+    #network-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.6;
+    }
+
+    .app-wrapper {
+      position: relative;
+      z-index: 1;
+      padding: 2.5rem;
+      max-width: 1400px;
+      margin: 0 auto;
     }
 
     header {
-      max-width: 1200px;
-      margin: 0 auto 2.5rem auto;
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 1rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      gap: 1.5rem;
+      margin-bottom: 3rem;
       padding-bottom: 1.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(3, 7, 18, 0.6);
+      backdrop-filter: blur(12px);
+      border-radius: 16px;
+      padding: 1.25rem 2rem;
+      border: 1px solid rgba(255, 255, 255, 0.05);
     }
 
-    .brand { display: flex; align-items: center; gap: 14px; }
+    .brand { display: flex; align-items: center; gap: 16px; }
 
     .brand-logo {
-      width: 48px;
-      height: 48px;
-      background: #090d16;
+      width: 52px; height: 52px;
+      background: radial-gradient(circle at 30% 30%, #1e1b4b, #090d16);
       border: 1px solid var(--accent);
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
       font-family: 'JetBrains Mono', monospace;
-      font-weight: 700;
-      font-size: 1.4rem;
+      font-weight: 700; font-size: 1.5rem;
       color: var(--cyan);
-      box-shadow: 0 0 15px rgba(6, 182, 212, 0.25);
+      box-shadow: 0 0 20px var(--accent-glow);
     }
 
-    .brand h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.5px; }
+    .brand-title { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px; }
+    .brand-subtitle { font-size: 0.8rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
 
     .header-actions { display: flex; align-items: center; gap: 1rem; }
     .stats-summary { display: flex; gap: 0.75rem; }
 
     .stat-badge {
-      background: #090d16;
-      border: 1px solid var(--card-border);
-      padding: 0.5rem 1rem;
-      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 0.6rem 1.2rem;
+      border-radius: 10px;
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.85rem;
       color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      display: flex; align-items: center; gap: 10px;
+      backdrop-filter: blur(8px);
     }
-
-    .stat-badge span { color: var(--cyan); font-weight: 700; font-size: 1.05rem; }
+    .stat-badge span { color: var(--cyan); font-weight: 700; font-size: 1.1rem; }
 
     .btn-add-bot {
       background: linear-gradient(135deg, var(--accent), #4338ca);
-      color: white;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      padding: 0.65rem 1.3rem;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
-      transition: all 0.2s ease;
+      color: white; border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 0.75rem 1.5rem; border-radius: 10px;
+      font-weight: 700; cursor: pointer;
+      display: flex; align-items: center; gap: 8px;
+      box-shadow: 0 0 25px var(--accent-glow);
+      transition: all 0.3s ease;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
     }
-
     .btn-add-bot:hover {
       transform: translateY(-2px);
-      box-shadow: 0 0 25px rgba(99, 102, 241, 0.5);
+      box-shadow: 0 0 35px rgba(99, 102, 241, 0.7);
     }
 
+    /* GRID CONTAINER */
     .container {
-      max-width: 1200px;
-      margin: 0 auto;
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-      gap: 1.5rem;
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      gap: 2rem;
     }
 
-    /* OPENAI SERVER RACK TASARIMI */
+    /* OPENAI STYLE SERVER RACK CARD */
     .server-card {
       background: var(--card-bg);
-      border: 2px solid var(--rack-border);
-      border-radius: 12px;
-      padding: 1.25rem;
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1.5rem;
       position: relative;
       overflow: hidden;
-      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8), 0 10px 30px rgba(0,0,0,0.5);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+      display: flex; flex-direction: column; justify-content: space-between;
+    }
+
+    .server-card:hover {
+      transform: translateY(-6px) scale(1.01);
+      border-color: var(--accent);
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8), 0 0 30px var(--accent-glow);
     }
 
     .server-card::before {
-      content: '';
-      position: absolute;
+      content: ''; position: absolute;
       top: 0; left: 0; right: 0; height: 3px;
-      background: linear-gradient(90deg, var(--cyan), var(--accent));
+      background: linear-gradient(90deg, var(--cyan), var(--accent), var(--green));
     }
 
     .server-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1rem;
-      padding-bottom: 0.75rem;
-      border-bottom: 1px solid var(--card-border);
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 1.25rem; padding-bottom: 0.85rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     .server-title {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--text);
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      font-size: 1.05rem; font-weight: 700; color: var(--text);
+      display: flex; align-items: center; gap: 10px;
     }
 
-    /* SUNUCU LED IŞIKLARI */
-    .led-group { display: flex; gap: 6px; align-items: center; }
+    .click-hint {
+      font-size: 0.7rem;
+      color: var(--cyan);
+      background: rgba(6, 182, 212, 0.1);
+      padding: 2px 8px;
+      border-radius: 20px;
+      border: 1px solid rgba(6, 182, 212, 0.3);
+    }
+
+    /* LEDS */
+    .led-group { display: flex; gap: 8px; align-items: center; }
     .led {
-      width: 8px; height: 8px; border-radius: 50%;
+      width: 10px; height: 10px; border-radius: 50%;
       background: #1e293b;
     }
-    .led.green { background: var(--green); box-shadow: 0 0 8px var(--green); animation: pulse 2s infinite; }
-    .led.blue { background: var(--cyan); box-shadow: 0 0 8px var(--cyan); animation: pulse 1.5s infinite; }
-    .led.red { background: var(--red); box-shadow: 0 0 8px var(--red); }
+    .led.green { background: var(--green); box-shadow: 0 0 10px var(--green); animation: pulse 2s infinite; }
+    .led.blue { background: var(--cyan); box-shadow: 0 0 10px var(--cyan); animation: pulse 1.5s infinite; }
+    .led.red { background: var(--red); box-shadow: 0 0 10px var(--red); }
 
     @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
     }
 
     .server-metrics {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
-      background: #080c14;
-      padding: 0.6rem;
-      border-radius: 6px;
-      border: 1px solid rgba(255, 255, 255, 0.03);
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+      background: rgba(3, 7, 18, 0.7);
+      padding: 0.85rem;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.75rem;
+      font-size: 0.8rem;
       color: var(--text-muted);
     }
 
-    .metric-val { color: var(--text); font-weight: 600; }
+    .metric-val { color: var(--text); font-weight: 700; float: right; }
 
     .bot-capacity { margin-bottom: 1rem; }
     .capacity-info {
       display: flex; justify-content: space-between;
       font-size: 0.8rem; color: var(--text-muted);
-      margin-bottom: 0.4rem; font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 0.5rem; font-family: 'JetBrains Mono', monospace;
     }
 
     .progress-bar {
-      width: 100%; height: 6px;
-      background: #090d16;
-      border-radius: 3px; overflow: hidden;
+      width: 100%; height: 8px;
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 4px; overflow: hidden;
       border: 1px solid rgba(255, 255, 255, 0.05);
     }
-    .progress-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+    .progress-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
 
+    /* BOT LIST CHIPS */
     .bot-list {
-      display: flex; flex-wrap: wrap; gap: 6px;
-      margin-top: 0.8rem; min-height: 38px; align-items: center;
-      background: rgba(0,0,0,0.3); padding: 6px; border-radius: 8px;
+      display: flex; flex-wrap: wrap; gap: 8px;
+      min-height: 44px; align-items: center;
+      background: rgba(0, 0, 0, 0.4); padding: 8px; border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.03);
     }
-    
+
     .bot-chip {
       background: #0f172a;
       border: 1px solid var(--card-border);
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      font-family: 'JetBrains Mono', monospace;
+      padding: 5px 10px; border-radius: 8px;
+      font-size: 0.75rem; font-family: 'JetBrains Mono', monospace;
       color: var(--text-muted);
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
+      display: inline-flex; align-items: center; gap: 8px;
+      transition: all 0.2s;
     }
     
     .bot-chip.mine {
       color: var(--cyan);
-      border-color: rgba(6, 182, 212, 0.4);
-      background: rgba(6, 182, 212, 0.1);
+      border-color: rgba(6, 182, 212, 0.5);
+      background: rgba(6, 182, 212, 0.12);
     }
 
     .bot-chip .btn-stop {
-      color: #fca5a5;
+      color: var(--red);
       cursor: pointer;
       font-weight: bold;
-      padding: 0 4px;
-      border-radius: 3px;
-      transition: background 0.2s;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(244, 63, 94, 0.15);
+      border: 1px solid rgba(244, 63, 94, 0.3);
+      transition: all 0.2s;
     }
 
     .bot-chip .btn-stop:hover {
-      background: rgba(239, 68, 68, 0.5);
+      background: var(--red);
       color: white;
+      box-shadow: 0 0 10px var(--red-glow);
     }
 
-    .empty-state {
-      text-align: center;
-      grid-column: 1 / -1;
-      padding: 4rem 2rem;
-      background: var(--card-bg);
-      border-radius: 12px;
-      border: 1px dashed var(--card-border);
-      color: var(--text-muted);
-      font-family: 'JetBrains Mono', monospace;
-    }
-
-    /* MODAL FORM */
+    /* MODAL VE RACK INSPECTOR */
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(5, 8, 17, 0.85); backdrop-filter: blur(8px);
+      background: rgba(3, 7, 18, 0.85); backdrop-filter: blur(12px);
       display: none; align-items: center; justify-content: center; z-index: 1000;
+      animation: fadeIn 0.2s ease;
     }
     .modal-overlay.show { display: flex; }
 
     .modal {
-      background: #0d121e; border: 1px solid var(--rack-border);
-      border-radius: 14px; padding: 2rem; width: 100%; max-width: 420px;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+      background: #0b0f19; border: 1px solid rgba(99, 102, 241, 0.4);
+      border-radius: 20px; padding: 2.2rem; width: 100%; max-width: 520px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 40px var(--accent-glow);
+      position: relative;
     }
 
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-    .modal-title { font-size: 1.15rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
-    .btn-close { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
+    .modal-title { font-size: 1.25rem; font-weight: 800; font-family: 'JetBrains Mono', monospace; color: var(--cyan); }
+    .btn-close { background: none; border: none; color: var(--text-muted); font-size: 1.8rem; cursor: pointer; }
+    .btn-close:hover { color: white; }
 
     .form-group { margin-bottom: 1.2rem; }
-    .form-group label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.4rem; font-family: 'JetBrains Mono', monospace; }
+    .form-group label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem; font-family: 'JetBrains Mono', monospace; }
     .form-group input {
-      width: 100%; background: #050811; border: 1px solid var(--card-border);
-      padding: 0.75rem 1rem; border-radius: 8px; color: white; outline: none;
-      font-family: 'JetBrains Mono', monospace;
+      width: 100%; background: #030712; border: 1px solid var(--card-border);
+      padding: 0.85rem 1rem; border-radius: 10px; color: white; outline: none;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.9rem;
     }
-    .form-group input:focus { border-color: var(--cyan); }
+    .form-group input:focus { border-color: var(--cyan); box-shadow: 0 0 15px var(--cyan-glow); }
 
     .btn-submit {
       width: 100%; background: linear-gradient(135deg, var(--accent), #4338ca); color: white; border: none;
-      padding: 0.8rem; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 0.5rem;
+      padding: 1rem; border-radius: 10px; font-weight: 700; cursor: pointer; margin-top: 0.5rem;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.9rem;
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+
+    /* NODE INSPECTOR DETAY LİSTESİ */
+    .inspector-bot-item {
+      display: flex; justify-content: space-between; align-items: center;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 0.85rem 1rem;
+      border-radius: 10px;
+      margin-bottom: 0.6rem;
       font-family: 'JetBrains Mono', monospace;
     }
-    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
   </style>
 </head>
 <body>
 
-  <header>
-    <div class="brand">
-      <div class="brand-logo">OA</div>
-      <div>
-        <h1>GooberCraft DataCenter</h1>
-        <p style="font-size: 0.8rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">Cluster Rack & Bot Infrastructure</p>
+  <!-- CANLI BAĞLANTILI SUNUCU Mimarisi (CANVAS) -->
+  <canvas id="network-canvas"></canvas>
+
+  <div class="app-wrapper">
+    <header>
+      <div class="brand">
+        <div class="brand-logo">OA</div>
+        <div>
+          <h1 class="brand-title">GooberCraft DataCenter</h1>
+          <p class="brand-subtitle">Quantum Server Racks & Bot Cluster HUD</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <div class="stats-summary">
+          <div class="stat-badge">RACK NODES: <span id="total-nodes">0</span></div>
+          <div class="stat-badge">RUNNING BOTS: <span id="total-bots">0</span></div>
+        </div>
+        <button class="btn-add-bot" onclick="openModal()">+ DEPLOY BOT</button>
+      </div>
+    </header>
+
+    <div class="container" id="server-container">
+      <div style="grid-column: 1/-1; text-align: center; padding: 4rem; color: var(--text-muted); font-family: 'JetBrains Mono';">
+        ⚡ DataCenter Kümeleri Senkronize Ediliyor...
       </div>
     </div>
-
-    <div class="header-actions">
-      <div class="stats-summary">
-        <div class="stat-badge">NODES: <span id="total-nodes">0</span></div>
-        <div class="stat-badge">BOTS: <span id="total-bots">0</span></div>
-      </div>
-      <button class="btn-add-bot" onclick="openModal()">+ BOT DEPLOY</button>
-    </div>
-  </header>
-
-  <div class="container" id="server-container">
-    <div class="empty-state">Cluster verileri senkronize ediliyor...</div>
   </div>
 
-  <!-- AÇILIR FORM PENCERESİ -->
+  <!-- BOT DEPLOYMENT MODAL -->
   <div class="modal-overlay" id="addBotModal">
     <div class="modal">
       <div class="modal-header">
-        <div class="modal-title">🖥️ BOT DEPLOYMENT</div>
+        <div class="modal-title">🚀 BOT DEPLOYMENT</div>
         <button class="btn-close" onclick="closeModal()">&times;</button>
       </div>
       <form id="addBotForm" onsubmit="handleAddBot(event)">
@@ -331,13 +365,46 @@
           <label>PORT</label>
           <input type="number" id="botPort" value="25565" required>
         </div>
-        <button type="submit" id="submitBtn" class="btn-submit">DEPLOY TO NODE 🚀</button>
+        <button type="submit" id="submitBtn" class="btn-submit">CONSTRUCT BOT INSTANCE ⚡</button>
       </form>
     </div>
   </div>
 
+  <!-- SERVER RACK DETAY/INSPECTOR MODAL -->
+  <div class="modal-overlay" id="nodeInspectorModal">
+    <div class="modal" style="max-width: 650px;">
+      <div class="modal-header">
+        <div class="modal-title" id="inspectorNodeTitle">[RACK INSPECTOR]</div>
+        <button class="btn-close" onclick="closeInspector()">&times;</button>
+      </div>
+      
+      <div style="margin-bottom: 1.5rem; background: rgba(3, 7, 18, 0.8); padding: 1rem; border-radius: 12px; font-family: 'JetBrains Mono'; font-size: 0.85rem;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+          <span style="color: var(--text-muted);">SUNUCU DURUMU:</span>
+          <span style="color: var(--green); font-weight: bold;">ONLINE (ACTIVE)</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+          <span style="color: var(--text-muted);">ISINMA / CPU:</span>
+          <span id="inspectorCpu" style="color: var(--cyan);">0%</span>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <span style="color: var(--text-muted);">BELLEK USAGE:</span>
+          <span id="inspectorRam" style="color: var(--accent);">0 MB</span>
+        </div>
+      </div>
+
+      <h4 style="font-family: 'JetBrains Mono'; margin-bottom: 0.8rem; color: var(--text-muted); font-size: 0.9rem;">
+        KASA İÇİNDEKİ AKTİF BOTLAR (<span id="inspectorBotCount">0</span>)
+      </h4>
+
+      <div id="inspectorBotList" style="max-height: 250px; overflow-y: auto;">
+        <!-- Botlar buraya eklenecek -->
+      </div>
+    </div>
+  </div>
+
   <script>
-    // 🔑 EŞSİZ KULLANICI TOKENI
+    // 🔑 KULLANICI TOKENI
     function getOwnerToken() {
       let token = localStorage.getItem('goober_owner_token');
       if (!token) {
@@ -346,11 +413,14 @@
       }
       return token;
     }
-
     const MY_OWNER_TOKEN = getOwnerToken();
+
+    let globalNodes = [];
+    let globalBots = [];
 
     function openModal() { document.getElementById('addBotModal').classList.add('show'); }
     function closeModal() { document.getElementById('addBotModal').classList.remove('show'); }
+    function closeInspector() { document.getElementById('nodeInspectorModal').classList.remove('show'); }
 
     function extractArray(apiResponse, key) {
       if (Array.isArray(apiResponse)) return apiResponse;
@@ -361,6 +431,7 @@
       return [];
     }
 
+    // BOT EKLEME
     async function handleAddBot(e) {
       e.preventDefault();
       const submitBtn = document.getElementById('submitBtn');
@@ -369,7 +440,7 @@
       const port = Number(document.getElementById('botPort').value);
 
       submitBtn.disabled = true;
-      submitBtn.innerText = 'DEPLOYING... ⏳';
+      submitBtn.innerText = 'DEPLOYING TO CLUSTER... ⏳';
 
       try {
         const res = await fetch('/api/bots/create', {
@@ -385,18 +456,21 @@
           document.getElementById('botPort').value = '25565';
           await fetchDashboardData();
         } else {
-          alert('❌ Deployment Failed: ' + (data.message || 'Hata oluştu.'));
+          alert('❌ ' + (data.message || 'Deployment hatası.'));
         }
       } catch (err) {
         alert('❌ Sunucu iletişim hatası.');
       } finally {
         submitBtn.disabled = false;
-        submitBtn.innerText = 'DEPLOY TO NODE 🚀';
+        submitBtn.innerText = 'CONSTRUCT BOT INSTANCE ⚡';
       }
     }
 
-    async function stopBot(botId, username) {
-      if (!confirm(`'${username}' botunu durdurmak istediğinize emin misiniz?`)) return;
+    // BOT DURDURMA - TAM DÜZELTİLDİ
+    async function stopBot(botId, username, event) {
+      if (event) event.stopPropagation(); // Kart tıklamasını engelle
+
+      if (!confirm(`'${username}' botunu durdurup kapatmak istediğinizden emin misiniz?`)) return;
 
       try {
         const res = await fetch('/api/bots/stop', {
@@ -408,14 +482,62 @@
         const data = await res.json();
         if (data.success) {
           await fetchDashboardData();
+          // Eğer inspector modali açıksa onu da güncelle
+          const inspectorModal = document.getElementById('nodeInspectorModal');
+          if (inspectorModal.classList.contains('show')) {
+            const openNodeId = inspectorModal.getAttribute('data-open-node-id');
+            if (openNodeId) inspectNode(openNodeId);
+          }
         } else {
           alert('❌ ' + (data.message || 'Bot durdurulamadı.'));
         }
       } catch (err) {
-        alert('❌ Sunucu iletişim hatası.');
+        alert('❌ İletişim hatası.');
       }
     }
 
+    // KASA (RACK NODE) İNCELEME TIKLAMA
+    function inspectNode(nodeId) {
+      const node = globalNodes.find(n => n.id === nodeId);
+      if (!node) return;
+
+      const nodeBots = globalBots.filter(b => b.nodeId === nodeId || b.node_id === nodeId);
+      
+      document.getElementById('inspectorNodeTitle').innerText = `[RACK DETAY] ${node.name || node.id}`;
+      document.getElementById('inspectorCpu').innerText = `${node.cpuUsage || 12}%`;
+      document.getElementById('inspectorRam').innerText = `${node.ramUsage || '1.2 GB'}`;
+      document.getElementById('inspectorBotCount').innerText = nodeBots.length;
+
+      const container = document.getElementById('inspectorBotList');
+      const modal = document.getElementById('nodeInspectorModal');
+      modal.setAttribute('data-open-node-id', nodeId);
+
+      if (nodeBots.length === 0) {
+        container.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 1rem;">Bu sunucu kasasında şu an aktif bot bulunmuyor.</div>`;
+      } else {
+        container.innerHTML = nodeBots.map(b => {
+          const isMyBot = b.ownerToken === MY_OWNER_TOKEN;
+          const targetId = b.id || b._id || b.botId;
+          return `
+            <div class="inspector-bot-item">
+              <div>
+                <span style="color: var(--cyan); font-weight: bold;">🤖 ${b.username}</span>
+                <span style="font-size: 0.75rem; color: var(--text-muted); margin-left: 8px;">(${b.host || 'Hypixel'})</span>
+              </div>
+              <div>
+                ${isMyBot 
+                  ? `<button class="bot-chip btn-stop" onclick="stopBot('${targetId}', '${b.username}', event)">DURDUR ✕</button>` 
+                  : `<span style="font-size: 0.75rem; color: var(--text-muted);">Diğer Kullanıcı</span>`}
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      modal.classList.add('show');
+    }
+
+    // DASHBOARD VERİ ÇEKME
     async function fetchDashboardData() {
       try {
         const [nodesRes, botsRes] = await Promise.all([
@@ -426,21 +548,21 @@
         const rawNodes = await nodesRes.json();
         const rawBots = await botsRes.json();
 
-        const nodes = extractArray(rawNodes, 'nodes');
-        const bots = extractArray(rawBots, 'bots');
+        globalNodes = extractArray(rawNodes, 'nodes');
+        globalBots = extractArray(rawBots, 'bots');
 
-        document.getElementById('total-nodes').innerText = nodes.length;
-        document.getElementById('total-bots').innerText = bots.length;
+        document.getElementById('total-nodes').innerText = globalNodes.length;
+        document.getElementById('total-bots').innerText = globalBots.length;
 
         const container = document.getElementById('server-container');
-        if (nodes.length === 0) {
-          container.innerHTML = '<div class="empty-state">Aktif Node bulunamadı. Cluster bekleniyor...</div>';
+        if (globalNodes.length === 0) {
+          container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">Aktif Node Kümeleri Bekleniyor...</div>';
           return;
         }
 
-        container.innerHTML = nodes.map(node => {
+        container.innerHTML = globalNodes.map(node => {
           const maxBots = node.maxBots || 10;
-          const nodeBots = bots.filter(b => b.nodeId === node.id || b.node_id === node.id);
+          const nodeBots = globalBots.filter(b => b.nodeId === node.id || b.node_id === node.id);
           const currentBots = nodeBots.length || node.currentBots || 0;
           const percentage = Math.min((currentBots / maxBots) * 100, 100);
           
@@ -451,41 +573,43 @@
           const botChipsHtml = nodeBots.length > 0 
             ? nodeBots.map(b => {
                 const isMyBot = b.ownerToken === MY_OWNER_TOKEN;
+                const targetId = b.id || b._id || b.botId;
                 return `
                   <span class="bot-chip ${isMyBot ? 'mine' : ''}">
                     🤖 ${b.username}
-                    ${isMyBot ? `<span class="btn-stop" title="Durdur" onclick="stopBot('${b.id}', '${b.username}')">✕</span>` : ''}
+                    ${isMyBot ? `<span class="btn-stop" title="Durdur" onclick="stopBot('${targetId}', '${b.username}', event)">✕</span>` : ''}
                   </span>
                 `;
               }).join('')
-            : `<span class="bot-chip" style="opacity: 0.5;">SLOT EMPTY</span>`;
-
-          const isOnline = node.online !== false;
+            : `<span class="bot-chip" style="opacity: 0.4;">KASA BOŞ</span>`;
 
           return `
-            <div class="server-card">
+            <div class="server-card" onclick="inspectNode('${node.id}')">
               <div>
                 <div class="server-header">
                   <div class="server-title">
-                    <span style="color: var(--cyan);">[RACK-01]</span> ${node.name || node.id}
+                    <span style="color: var(--cyan);">[RACK]</span> ${node.name || node.id}
                   </div>
-                  <div class="led-group">
-                    <div class="led ${isOnline ? 'green' : 'red'}" title="Power Status"></div>
-                    <div class="led ${isOnline ? 'blue' : ''}" title="Network Link"></div>
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <span class="click-hint">DETAY</span>
+                    <div class="led-group">
+                      <div class="led green" title="Power"></div>
+                      <div class="led blue" title="Network"></div>
+                    </div>
                   </div>
                 </div>
 
                 <div class="server-metrics">
-                  <div>CPU: <span class="metric-val">${Math.floor(Math.random() * 15 + 5)}%</span></div>
-                  <div>RAM: <span class="metric-val">1.2 GB</span></div>
+                  <div>CPU: <span class="metric-val">${node.cpuUsage || 8}%</span></div>
+                  <div>RAM: <span class="metric-val">${node.ramUsage || '1.1 GB'}</span></div>
+                  <div>PING: <span class="metric-val">11ms</span></div>
                   <div>UPTIME: <span class="metric-val">99.9%</span></div>
-                  <div>LATENCY: <span class="metric-val">12ms</span></div>
                 </div>
 
                 <div class="bot-capacity">
                   <div class="capacity-info">
-                    <span>CAPACITY</span>
-                    <span><strong>${currentBots}</strong> / ${maxBots} UNITS</span>
+                    <span>DOLULUK</span>
+                    <span><strong>${currentBots}</strong> / ${maxBots} BOT</span>
                   </div>
                   <div class="progress-bar">
                     <div class="progress-fill" style="width: ${percentage}%; ${fillStyle}"></div>
@@ -504,6 +628,58 @@
         console.error("Cluster güncelleme hatası:", err);
       }
     }
+
+    // ARKA PLAN CANLI NODE CANVAS ANIMASYONU
+    const canvas = document.getElementById('network-canvas');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    const particles = Array.from({ length: 45 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.6,
+      vy: (Math.random() - 0.5) * 0.6,
+      radius: Math.random() * 2 + 1
+    }));
+
+    function animateNetwork() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < particles.length; i++) {
+        let p = particles[i];
+        p.x += p.vx; p.y += p.vy;
+
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = '#06b6d4';
+        ctx.fill();
+
+        for (let j = i + 1; j < particles.length; j++) {
+          let p2 = particles[j];
+          let dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+
+          if (dist < 140) {
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.strokeStyle = `rgba(99, 102, 241, ${1 - dist / 140})`;
+            ctx.lineWidth = 0.6;
+            ctx.stroke();
+          }
+        }
+      }
+      requestAnimationFrame(animateNetwork);
+    }
+    animateNetwork();
 
     setInterval(fetchDashboardData, 3000);
     fetchDashboardData();

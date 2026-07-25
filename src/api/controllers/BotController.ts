@@ -37,7 +37,7 @@ export class BotController {
       }
     }
 
-    // 4. GLOBAL KAPASİTE KONTROLÜ (Tüm Rack'ler 100/100 Doluysa)
+    // 4. GLOBAL KAPASİTE KONTROLÜ
     if (!selectedNode) {
       return res.status(400).json({
         success: false,
@@ -47,26 +47,32 @@ export class BotController {
 
     try {
       // Botu seçilen en boş Rack üzerine konuşlandır
-      const bot = await createBot({ username, host, port });
-      const botData = manager.bots.get(bot.getId());
+      const botInstance = await createBot({ username, host, port });
+      
+      // Bot ID tespiti
+      const targetId = typeof botInstance.getId === 'function' ? botInstance.getId() : (botInstance as any).id;
+      const botData = manager.bots.get(targetId) || botInstance;
 
       if (botData) {
+        (botData as any).id = targetId;
         (botData as any).nodeId = selectedNode.id;
         (botData as any).ownerToken = userToken;
+        (botData as any).username = username;
+        (botData as any).host = host;
       }
 
       return res.json({
         success: true,
         message: `'${username}' botu ${selectedNode.name} üzerine konuşlandırıldı! (${userBotsCount + 1}/3 botunuz aktif)`,
-        botId: bot.getId(),
+        botId: targetId,
         nodeId: selectedNode.id
       });
     } catch (error: any) {
-      return res.status(500).json({ success: false, message: error.message });
+      return res.status(500).json({ success: false, message: error.message || "Bot başlatılamadı." });
     }
   }
 
-  // BOT DURDURMA / SİLME
+  // BOT DURDURMA / SİLME - GERÇEK KONTROL & TAM KAPATMA
   public static async stop(req: Request, res: Response) {
     const { id, ownerToken } = req.body;
 
@@ -74,32 +80,68 @@ export class BotController {
       return res.status(400).json({ success: false, message: "Bot ID zorunludur!" });
     }
 
-    const botData = manager.bots.get(id);
+    // 1. Botu ID üzerinden bul
+    let botData: any = manager.bots.get(id);
+
+    // Eğer ID doğrudan uyuşmadıysa esnek eşleşme yap
     if (!botData) {
-      return res.status(404).json({ success: false, message: "Bot bulunamadı veya zaten çevrimdışı." });
+      const allBots = manager.bots.getAll();
+      botData = allBots.find((b: any) => b.id === id || b._id === id || b.botId === id);
     }
 
-    // SAHİPLİK KONTROLÜ (Sadece ekleyen silebilir)
-    if ((botData as any).ownerToken && (botData as any).ownerToken !== ownerToken) {
+    if (!botData) {
+      return res.status(404).json({ success: false, message: "Bot bulunamadı veya zaten kapatılmış." });
+    }
+
+    // 2. SAHİPLİK KONTROLÜ (Sadece oluşturan silebilir)
+    if (botData.ownerToken && botData.ownerToken !== ownerToken) {
       return res.status(403).json({
         success: false,
         message: "⛔ Bu botu sadece oluşturan kişi durdurabilir!"
       });
     }
 
-    manager.bots.remove(id);
+    try {
+      // 3. MINEFLAYER BOTUNU SUNUCUDAN GERÇEKTEN ÇIKAR
+      if (typeof botData.quit === 'function') {
+        botData.quit();
+      } else if (typeof botData.end === 'function') {
+        botData.end();
+      } else if (botData.bot && typeof botData.bot.end === 'function') {
+        botData.bot.end();
+      }
 
-    return res.json({
-      success: true,
-      message: `'${botData.username}' botu durduruldu. Sizin için +1 bot hakkı tekrar açıldı.`
-    });
+      // 4. BOTS MANAGER BELLEĞİNDEN TAMAMEN KALDIR
+      const targetId = botData.id || id;
+      manager.bots.remove(targetId);
+
+      return res.json({
+        success: true,
+        message: `'${botData.username || 'Bot'}' durduruldu ve kapatıldı. Sizin için +1 bot hakkı açıldı.`
+      });
+    } catch (err: any) {
+      // Yine de listeden sil
+      manager.bots.remove(id);
+      return res.json({
+        success: true,
+        message: "Bot zorla kapatıldı ve listeden silindi."
+      });
+    }
   }
 
   // BOTS LİSTELEME
   public static getBots(req: Request, res: Response) {
+    const bots = manager.bots.getAll().map((b: any) => ({
+      id: b.id || b._id || b.botId,
+      username: b.username,
+      host: b.host,
+      nodeId: b.nodeId || b.node_id,
+      ownerToken: b.ownerToken
+    }));
+
     return res.json({
       success: true,
-      bots: manager.bots.getAll()
+      bots: bots
     });
   }
 }
