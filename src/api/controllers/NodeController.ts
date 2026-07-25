@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { manager } from "../../managers"; // ✅ İki üst klasöre çıkıldığından emin olundu
+import { manager } from "../../managers";
 
 export class NodeController {
   public static register(req: Request, res: Response) {
@@ -27,9 +27,14 @@ export class NodeController {
   }
 
   public static getNodes(req: Request, res: Response) {
+    const nodesList = manager.nodes.getAllNodes();
+    
+    // Hem { success: true, nodes: [...] } hem de esneklik için
     return res.json({
       success: true,
-      nodes: manager.nodes.getAllNodes()
+      count: nodesList.length,
+      nodes: nodesList,
+      data: nodesList // Frontend 'data' parametresi bekliyorsa çökmemesi için
     });
   }
 }

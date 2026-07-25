@@ -8,7 +8,7 @@
   <style>
     :root {
       --bg-color: #0f172a;
-      --card-bg: rgba(30, 41, 59, 0.7);
+      --card-bg: rgba(30, 41, 59, 0.75);
       --card-border: rgba(255, 255, 255, 0.1);
       --accent: #6366f1;
       --accent-hover: #4f46e5;
@@ -37,63 +37,68 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
     }
 
     .brand { display: flex; align-items: center; gap: 12px; }
 
     .brand-logo {
-      width: 42px;
-      height: 42px;
+      width: 44px;
+      height: 44px;
       background: linear-gradient(135deg, var(--accent), #a855f7);
       border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 700;
-      font-size: 1.2rem;
-      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+      font-size: 1.3rem;
+      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
     }
 
     .header-actions { display: flex; align-items: center; gap: 1rem; }
-    .stats-summary { display: flex; gap: 1rem; }
+    .stats-summary { display: flex; gap: 0.75rem; }
 
     .stat-badge {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       padding: 0.5rem 1rem;
-      border-radius: 8px;
+      border-radius: 10px;
       backdrop-filter: blur(8px);
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
-    .stat-badge span { color: var(--text); font-weight: 600; }
+    .stat-badge span { color: var(--text); font-weight: 700; font-size: 1rem; }
 
     .btn-add-bot {
       background: linear-gradient(135deg, var(--accent), #a855f7);
       color: white;
       border: none;
-      padding: 0.6rem 1.2rem;
+      padding: 0.65rem 1.3rem;
       border-radius: 10px;
       font-weight: 600;
       cursor: pointer;
       display: flex;
       align-items: center;
       gap: 8px;
-      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+      transition: all 0.2s ease;
     }
 
     .btn-add-bot:hover {
       transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(99, 102, 241, 0.5);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
     }
 
     .container {
       max-width: 1200px;
       margin: 0 auto;
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
       gap: 1.5rem;
     }
 
@@ -103,37 +108,43 @@
       border-radius: 16px;
       padding: 1.5rem;
       backdrop-filter: blur(12px);
-      transition: transform 0.2s ease;
+      transition: transform 0.25s ease, border-color 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
 
-    .server-card:hover { transform: translateY(-4px); }
+    .server-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(99, 102, 241, 0.3);
+    }
 
-    .server-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-    .server-title { font-size: 1.1rem; font-weight: 600; }
+    .server-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; }
+    .server-title { font-size: 1.15rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
 
     .status-indicator {
-      display: flex; align-items: center; gap: 6px; font-size: 0.8rem;
-      padding: 4px 10px; border-radius: 20px; background: rgba(16, 185, 129, 0.1); color: var(--green);
+      display: flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 600;
+      padding: 4px 10px; border-radius: 20px; background: rgba(16, 185, 129, 0.15); color: var(--green);
     }
 
-    .status-indicator.offline { background: rgba(239, 68, 68, 0.1); color: var(--red); }
-    .status-dot { width: 8px; height: 8px; border-radius: 50%; background-color: var(--green); }
-    .status-indicator.offline .status-dot { background-color: var(--red); }
+    .status-indicator.offline { background: rgba(239, 68, 68, 0.15); color: var(--red); }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background-color: var(--green); box-shadow: 0 0 8px var(--green); }
+    .status-indicator.offline .status-dot { background-color: var(--red); box-shadow: 0 0 8px var(--red); }
 
-    .bot-capacity { margin-bottom: 1rem; }
-    .capacity-info { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; }
+    .bot-capacity { margin-bottom: 1.2rem; }
+    .capacity-info { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem; }
 
-    .progress-bar { width: 100%; height: 8px; background: rgba(255, 255, 255, 0.05); border-radius: 4px; overflow: hidden; }
-    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #818cf8); border-radius: 4px; }
+    .progress-bar { width: 100%; height: 8px; background: rgba(255, 255, 255, 0.08); border-radius: 4px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease, background 0.4s ease; }
 
-    .bot-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 1.2rem; min-height: 30px; }
+    .bot-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 1rem; min-height: 36px; align-items: center; }
     
     .bot-chip {
       background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-size: 0.75rem;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 0.8rem;
       color: var(--text-muted);
     }
     
@@ -145,56 +156,65 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      transition: all 0.2s;
+      font-weight: 500;
+      transition: all 0.2s ease;
     }
 
     .bot-chip.active:hover {
-      background: rgba(239, 68, 68, 0.2);
-      border-color: rgba(239, 68, 68, 0.4);
+      background: rgba(239, 68, 68, 0.25);
+      border-color: rgba(239, 68, 68, 0.5);
       color: #fca5a5;
+      transform: scale(1.03);
     }
 
     .empty-state {
       text-align: center;
       grid-column: 1 / -1;
-      padding: 4rem;
+      padding: 4rem 2rem;
       background: var(--card-bg);
       border-radius: 16px;
-      border: 1px solid var(--card-border);
+      border: 1px dashed var(--card-border);
       color: var(--text-muted);
+      font-size: 1rem;
     }
 
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(8px);
+      background: rgba(15, 23, 42, 0.82); backdrop-filter: blur(8px);
       display: none; align-items: center; justify-content: center; z-index: 1000;
+      opacity: 0; transition: opacity 0.2s ease;
     }
-    .modal-overlay.show { display: flex; }
+    .modal-overlay.show { display: flex; opacity: 1; }
 
     .modal {
       background: #1e293b; border: 1px solid var(--card-border);
-      border-radius: 16px; padding: 2rem; width: 100%; max-width: 420px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+      border-radius: 20px; padding: 2rem; width: 100%; max-width: 440px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+      transform: translateY(10px); transition: transform 0.2s ease;
     }
+    .modal-overlay.show .modal { transform: translateY(0); }
 
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-    .modal-title { font-size: 1.2rem; font-weight: 700; }
-    .btn-close { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
+    .modal-title { font-size: 1.25rem; font-weight: 700; }
+    .btn-close { background: none; border: none; color: var(--text-muted); font-size: 1.6rem; cursor: pointer; line-height: 1; }
+    .btn-close:hover { color: white; }
 
     .form-group { margin-bottom: 1.2rem; }
-    .form-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; }
+    .form-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; font-weight: 500; }
     .form-group input {
       width: 100%; background: #0f172a; border: 1px solid var(--card-border);
-      padding: 0.75rem 1rem; border-radius: 8px; color: white; outline: none;
+      padding: 0.8rem 1rem; border-radius: 10px; color: white; outline: none;
+      transition: border-color 0.2s;
     }
     .form-group input:focus { border-color: var(--accent); }
 
     .btn-submit {
-      width: 100%; background: var(--accent); color: white; border: none;
-      padding: 0.8rem; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 0.5rem;
+      width: 100%; background: linear-gradient(135deg, var(--accent), #a855f7); color: white; border: none;
+      padding: 0.85rem; border-radius: 10px; font-weight: 600; cursor: pointer; margin-top: 0.5rem;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); transition: opacity 0.2s;
     }
-    .btn-submit:hover { background: var(--accent-hover); }
-    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-submit:hover { opacity: 0.95; }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
   </style>
 </head>
 <body>
@@ -250,11 +270,21 @@
     function openModal() { document.getElementById('addBotModal').classList.add('show'); }
     function closeModal() { document.getElementById('addBotModal').classList.remove('show'); }
 
+    // Dizi dönüşlerini esnekçe çözen yardımcı yardımcı fonksiyon
+    function extractArray(apiResponse, key) {
+      if (Array.isArray(apiResponse)) return apiResponse;
+      if (apiResponse && typeof apiResponse === 'object') {
+        if (Array.isArray(apiResponse[key])) return apiResponse[key];
+        if (Array.isArray(apiResponse.data)) return apiResponse.data;
+      }
+      return [];
+    }
+
     async function handleAddBot(e) {
       e.preventDefault();
       const submitBtn = document.getElementById('submitBtn');
-      const username = document.getElementById('botUsername').value;
-      const host = document.getElementById('botHost').value;
+      const username = document.getElementById('botUsername').value.trim();
+      const host = document.getElementById('botHost').value.trim();
       const port = Number(document.getElementById('botPort').value);
 
       submitBtn.disabled = true;
@@ -269,16 +299,15 @@
 
         const data = await res.json();
         if (data.success) {
-          alert('✅ ' + data.message);
           closeModal();
           document.getElementById('addBotForm').reset();
           document.getElementById('botPort').value = '25565';
-          fetchDashboardData();
+          await fetchDashboardData();
         } else {
           alert('❌ Hata: ' + (data.message || 'Bot eklenemedi.'));
         }
       } catch (err) {
-        alert('❌ Sunucuya bağlanırken hata oluştu.');
+        alert('❌ Sunucuya bağlanırken iletişim hatası oluştu.');
       } finally {
         submitBtn.disabled = false;
         submitBtn.innerText = 'En Boş Sunucuya Atarak Başlat 🚀';
@@ -297,12 +326,12 @@
 
         const data = await res.json();
         if (data.success) {
-          fetchDashboardData();
+          await fetchDashboardData();
         } else {
           alert('❌ Bot durdurulamadı: ' + (data.message || 'Bilinmeyen hata'));
         }
       } catch (err) {
-        alert('❌ Sunucuyla iletişim hatası.');
+        alert('❌ Sunucuyla iletişim hatası oluştu.');
       }
     }
 
@@ -313,11 +342,12 @@
           fetch('/api/bots')
         ]);
 
-        const nodesData = await nodesRes.json();
-        const botsData = await botsRes.json();
+        const rawNodes = await nodesRes.json();
+        const rawBots = await botsRes.json();
 
-        const nodes = nodesData.nodes || [];
-        const bots = botsData.bots || [];
+        // Her iki veri türünü güvenli diziye aktarma
+        const nodes = extractArray(rawNodes, 'nodes');
+        const bots = extractArray(rawBots, 'bots');
 
         document.getElementById('total-nodes').innerText = nodes.length;
         document.getElementById('total-bots').innerText = bots.length;
@@ -330,7 +360,9 @@
 
         container.innerHTML = nodes.map(node => {
           const maxBots = node.maxBots || 10;
-          const nodeBots = bots.filter(b => b.nodeId === node.id);
+          
+          // Node altındaki botları eşleştirme
+          const nodeBots = bots.filter(b => b.nodeId === node.id || b.node_id === node.id);
           const currentBots = nodeBots.length || node.currentBots || 0;
           const percentage = Math.min((currentBots / maxBots) * 100, 100);
           
@@ -346,21 +378,26 @@
               `).join('')
             : `<span class="bot-chip">Bot Yok</span>`;
 
+          // Master veya Local Node varsayılan olarak aktiftir
+          const isOnline = node.online !== false;
+
           return `
             <div class="server-card">
-              <div class="server-header">
-                <div class="server-title">🌐 ${node.name || node.id}</div>
-                <div class="status-indicator ${node.online ? '' : 'offline'}">
-                  <div class="status-dot"></div> ${node.online ? 'Aktif' : 'Çevrimdışı'}
+              <div>
+                <div class="server-header">
+                  <div class="server-title">🌐 ${node.name || node.id}</div>
+                  <div class="status-indicator ${isOnline ? '' : 'offline'}">
+                    <div class="status-dot"></div> ${isOnline ? 'Aktif' : 'Çevrimdışı'}
+                  </div>
                 </div>
-              </div>
-              <div class="bot-capacity">
-                <div class="capacity-info">
-                  <span>Bot Kapasitesi</span>
-                  <span><strong>${currentBots}</strong> / ${maxBots} Bot</span>
-                </div>
-                <div class="progress-bar">
-                  <div class="progress-fill" style="width: ${percentage}%; ${fillStyle}"></div>
+                <div class="bot-capacity">
+                  <div class="capacity-info">
+                    <span>Bot Kapasitesi</span>
+                    <span><strong>${currentBots}</strong> / ${maxBots} Bot</span>
+                  </div>
+                  <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${percentage}%; ${fillStyle}"></div>
+                  </div>
                 </div>
               </div>
               <div class="bot-list">
@@ -371,10 +408,11 @@
         }).join('');
 
       } catch (err) {
-        console.error("Dashboard verisi çekilirken hata oluştu:", err);
+        console.error("Dashboard verisi güncellenirken hata:", err);
       }
     }
 
+    // Her 3 saniyede bir otomatik verileri tazele
     setInterval(fetchDashboardData, 3000);
     fetchDashboardData();
   </script>

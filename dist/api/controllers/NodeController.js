@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NodeController = void 0;
-const managers_1 = require("../../managers"); // ✅ İki üst klasöre çıkıldığından emin olundu
+const managers_1 = require("../../managers");
 class NodeController {
     static register(req, res) {
         const { id, name, url, maxBots } = req.body;
@@ -24,9 +24,13 @@ class NodeController {
         });
     }
     static getNodes(req, res) {
+        const nodesList = managers_1.manager.nodes.getAllNodes();
+        // Hem { success: true, nodes: [...] } hem de esneklik için
         return res.json({
             success: true,
-            nodes: managers_1.manager.nodes.getAllNodes()
+            count: nodesList.length,
+            nodes: nodesList,
+            data: nodesList // Frontend 'data' parametresi bekliyorsa çökmemesi için
         });
     }
 }
