@@ -7,33 +7,33 @@ exports.nodesList = void 0;
 const express_1 = require("express");
 const os_1 = __importDefault(require("os"));
 const router = (0, express_1.Router)();
-// Bellekte en azından master-node-1 bulunsun
-exports.nodesList = [
-    {
-        id: "master-node-1",
-        name: "Master DataCenter Node",
-        maxBots: 10,
-        online: true,
-        cpuUsage: 0,
-        ramUsage: "0 MB"
-    }
-];
+// 10 Tane Hazır Rack (Node) Tanımlaması
+exports.nodesList = Array.from({ length: 10 }, (_, index) => ({
+    id: `master-node-${index + 1}`,
+    name: `DataCenter Rack #${index + 1}`,
+    maxBots: 10,
+    online: true,
+    cpuUsage: 0,
+    ramUsage: "0 MB"
+}));
 router.get("/", (req, res) => {
     // Gerçek Sistem RAM & CPU Metriklerini Hesapla
     const totalMem = os_1.default.totalmem();
     const freeMem = os_1.default.freemem();
     const usedMemMB = Math.round((totalMem - freeMem) / (1024 * 1024));
-    const cpuLoad = Math.round(os_1.default.loadavg()[0] * 10) || 12; // Sistem yükü %
-    // Master node'u canlı metriklerle güncelle
-    if (exports.nodesList.length === 0) {
-        exports.nodesList.push({ id: "master-node-1", name: "Master DataCenter Node", maxBots: 10, online: true });
-    }
-    exports.nodesList[0].cpuUsage = cpuLoad;
-    exports.nodesList[0].ramUsage = `${usedMemMB} MB`;
-    // Frontend hem { success, nodes } hem de düz [] beklerse çakışmasın diye
-    res.json({
+    const cpus = os_1.default.cpus().length;
+    const load = os_1.default.loadavg()[0];
+    const cpuPercent = Math.min(Math.round((load / cpus) * 100) || 8, 100);
+    // Bütün Rack'lerin canlı metriklerini güncelle
+    const updatedNodes = exports.nodesList.map(node => ({
+        ...node,
+        cpuUsage: cpuPercent,
+        ramUsage: `${Math.round(usedMemMB / 10)} MB` // Rack başına ortalama yük dağılımı
+    }));
+    return res.json({
         success: true,
-        nodes: exports.nodesList
+        count: updatedNodes.length,
+        nodes: updatedNodes
     });
 });
 exports.default = router;
