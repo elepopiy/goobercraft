@@ -2,21 +2,26 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
+  <!-- Tarayıcı Önbelleğini (Cache) Tamamen Engelleme -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GooberCraft Master - Node & Bot Paneli</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <title>GooberCraft Master - Data Center Cluster</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-color: #0f172a;
-      --card-bg: rgba(30, 41, 59, 0.75);
-      --card-border: rgba(255, 255, 255, 0.1);
+      --bg-color: #050811;
+      --card-bg: rgba(13, 18, 30, 0.85);
+      --card-border: #1e293b;
+      --rack-border: #334155;
       --accent: #6366f1;
-      --accent-hover: #4f46e5;
+      --cyan: #06b6d4;
       --green: #10b981;
       --yellow: #f59e0b;
       --red: #ef4444;
       --text: #f8fafc;
-      --text-muted: #94a3b8;
+      --text-muted: #64748b;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
@@ -24,8 +29,10 @@
     body {
       background-color: var(--bg-color);
       background-image: 
-        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
+        radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.12) 0%, transparent 70%),
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 100% 100%, 30px 30px, 30px 30px;
       color: var(--text);
       min-height: 100vh;
       padding: 2rem;
@@ -39,112 +46,175 @@
       align-items: center;
       flex-wrap: wrap;
       gap: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 1.5rem;
     }
 
-    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand { display: flex; align-items: center; gap: 14px; }
 
     .brand-logo {
-      width: 44px;
-      height: 44px;
-      background: linear-gradient(135deg, var(--accent), #a855f7);
-      border-radius: 12px;
+      width: 48px;
+      height: 48px;
+      background: #090d16;
+      border: 1px solid var(--accent);
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
       font-weight: 700;
-      font-size: 1.3rem;
-      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+      font-size: 1.4rem;
+      color: var(--cyan);
+      box-shadow: 0 0 15px rgba(6, 182, 212, 0.25);
     }
+
+    .brand h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.5px; }
 
     .header-actions { display: flex; align-items: center; gap: 1rem; }
     .stats-summary { display: flex; gap: 0.75rem; }
 
     .stat-badge {
-      background: var(--card-bg);
+      background: #090d16;
       border: 1px solid var(--card-border);
       padding: 0.5rem 1rem;
-      border-radius: 10px;
-      backdrop-filter: blur(8px);
+      border-radius: 8px;
+      font-family: 'JetBrains Mono', monospace;
       font-size: 0.85rem;
       color: var(--text-muted);
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
     }
 
-    .stat-badge span { color: var(--text); font-weight: 700; font-size: 1rem; }
+    .stat-badge span { color: var(--cyan); font-weight: 700; font-size: 1.05rem; }
 
     .btn-add-bot {
-      background: linear-gradient(135deg, var(--accent), #a855f7);
+      background: linear-gradient(135deg, var(--accent), #4338ca);
       color: white;
-      border: none;
+      border: 1px solid rgba(255, 255, 255, 0.2);
       padding: 0.65rem 1.3rem;
-      border-radius: 10px;
+      border-radius: 8px;
       font-weight: 600;
       cursor: pointer;
       display: flex;
       align-items: center;
       gap: 8px;
-      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+      box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
       transition: all 0.2s ease;
     }
 
     .btn-add-bot:hover {
       transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+      box-shadow: 0 0 25px rgba(99, 102, 241, 0.5);
     }
 
     .container {
       max-width: 1200px;
       margin: 0 auto;
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
       gap: 1.5rem;
     }
 
+    /* OPENAI SERVER RACK TASARIMI */
     .server-card {
       background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 16px;
-      padding: 1.5rem;
-      backdrop-filter: blur(12px);
-      transition: transform 0.25s ease, border-color 0.25s ease;
+      border: 2px solid var(--rack-border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8), 0 10px 30px rgba(0,0,0,0.5);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
     }
 
-    .server-card:hover {
-      transform: translateY(-4px);
-      border-color: rgba(99, 102, 241, 0.3);
+    .server-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--cyan), var(--accent));
     }
 
-    .server-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; }
-    .server-title { font-size: 1.15rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-
-    .status-indicator {
-      display: flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 600;
-      padding: 4px 10px; border-radius: 20px; background: rgba(16, 185, 129, 0.15); color: var(--green);
+    .server-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--card-border);
     }
 
-    .status-indicator.offline { background: rgba(239, 68, 68, 0.15); color: var(--red); }
-    .status-dot { width: 8px; height: 8px; border-radius: 50%; background-color: var(--green); box-shadow: 0 0 8px var(--green); }
-    .status-indicator.offline .status-dot { background-color: var(--red); box-shadow: 0 0 8px var(--red); }
+    .server-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-    .bot-capacity { margin-bottom: 1.2rem; }
-    .capacity-info { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+    /* SUNUCU LED IŞIKLARI */
+    .led-group { display: flex; gap: 6px; align-items: center; }
+    .led {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #1e293b;
+    }
+    .led.green { background: var(--green); box-shadow: 0 0 8px var(--green); animation: pulse 2s infinite; }
+    .led.blue { background: var(--cyan); box-shadow: 0 0 8px var(--cyan); animation: pulse 1.5s infinite; }
+    .led.red { background: var(--red); box-shadow: 0 0 8px var(--red); }
 
-    .progress-bar { width: 100%; height: 8px; background: rgba(255, 255, 255, 0.08); border-radius: 4px; overflow: hidden; }
-    .progress-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease, background 0.4s ease; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
 
-    .bot-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 1rem; min-height: 36px; align-items: center; }
+    .server-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      background: #080c14;
+      padding: 0.6rem;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .metric-val { color: var(--text); font-weight: 600; }
+
+    .bot-capacity { margin-bottom: 1rem; }
+    .capacity-info {
+      display: flex; justify-content: space-between;
+      font-size: 0.8rem; color: var(--text-muted);
+      margin-bottom: 0.4rem; font-family: 'JetBrains Mono', monospace;
+    }
+
+    .progress-bar {
+      width: 100%; height: 6px;
+      background: #090d16;
+      border-radius: 3px; overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .progress-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+
+    .bot-list {
+      display: flex; flex-wrap: wrap; gap: 6px;
+      margin-top: 0.8rem; min-height: 38px; align-items: center;
+      background: rgba(0,0,0,0.3); padding: 6px; border-radius: 8px;
+    }
     
     .bot-chip {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      padding: 5px 10px;
-      border-radius: 8px;
-      font-size: 0.8rem;
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-family: 'JetBrains Mono', monospace;
       color: var(--text-muted);
       display: inline-flex;
       align-items: center;
@@ -152,23 +222,22 @@
     }
     
     .bot-chip.mine {
-      color: var(--text);
-      border-color: rgba(99, 102, 241, 0.4);
-      background: rgba(99, 102, 241, 0.15);
-      font-weight: 500;
+      color: var(--cyan);
+      border-color: rgba(6, 182, 212, 0.4);
+      background: rgba(6, 182, 212, 0.1);
     }
 
     .bot-chip .btn-stop {
       color: #fca5a5;
       cursor: pointer;
       font-weight: bold;
-      padding: 0 2px;
-      border-radius: 4px;
+      padding: 0 4px;
+      border-radius: 3px;
       transition: background 0.2s;
     }
 
     .bot-chip .btn-stop:hover {
-      background: rgba(239, 68, 68, 0.4);
+      background: rgba(239, 68, 68, 0.5);
       color: white;
     }
 
@@ -177,48 +246,44 @@
       grid-column: 1 / -1;
       padding: 4rem 2rem;
       background: var(--card-bg);
-      border-radius: 16px;
+      border-radius: 12px;
       border: 1px dashed var(--card-border);
       color: var(--text-muted);
-      font-size: 1rem;
+      font-family: 'JetBrains Mono', monospace;
     }
 
+    /* MODAL FORM */
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(15, 23, 42, 0.82); backdrop-filter: blur(8px);
+      background: rgba(5, 8, 17, 0.85); backdrop-filter: blur(8px);
       display: none; align-items: center; justify-content: center; z-index: 1000;
-      opacity: 0; transition: opacity 0.2s ease;
     }
-    .modal-overlay.show { display: flex; opacity: 1; }
+    .modal-overlay.show { display: flex; }
 
     .modal {
-      background: #1e293b; border: 1px solid var(--card-border);
-      border-radius: 20px; padding: 2rem; width: 100%; max-width: 440px;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
-      transform: translateY(10px); transition: transform 0.2s ease;
+      background: #0d121e; border: 1px solid var(--rack-border);
+      border-radius: 14px; padding: 2rem; width: 100%; max-width: 420px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
     }
-    .modal-overlay.show .modal { transform: translateY(0); }
 
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-    .modal-title { font-size: 1.25rem; font-weight: 700; }
-    .btn-close { background: none; border: none; color: var(--text-muted); font-size: 1.6rem; cursor: pointer; line-height: 1; }
-    .btn-close:hover { color: white; }
+    .modal-title { font-size: 1.15rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+    .btn-close { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
 
     .form-group { margin-bottom: 1.2rem; }
-    .form-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; font-weight: 500; }
+    .form-group label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.4rem; font-family: 'JetBrains Mono', monospace; }
     .form-group input {
-      width: 100%; background: #0f172a; border: 1px solid var(--card-border);
-      padding: 0.8rem 1rem; border-radius: 10px; color: white; outline: none;
-      transition: border-color 0.2s;
+      width: 100%; background: #050811; border: 1px solid var(--card-border);
+      padding: 0.75rem 1rem; border-radius: 8px; color: white; outline: none;
+      font-family: 'JetBrains Mono', monospace;
     }
-    .form-group input:focus { border-color: var(--accent); }
+    .form-group input:focus { border-color: var(--cyan); }
 
     .btn-submit {
-      width: 100%; background: linear-gradient(135deg, var(--accent), #a855f7); color: white; border: none;
-      padding: 0.85rem; border-radius: 10px; font-weight: 600; cursor: pointer; margin-top: 0.5rem;
-      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); transition: opacity 0.2s;
+      width: 100%; background: linear-gradient(135deg, var(--accent), #4338ca); color: white; border: none;
+      padding: 0.8rem; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 0.5rem;
+      font-family: 'JetBrains Mono', monospace;
     }
-    .btn-submit:hover { opacity: 0.95; }
     .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
   </style>
 </head>
@@ -226,57 +291,57 @@
 
   <header>
     <div class="brand">
-      <div class="brand-logo">G</div>
+      <div class="brand-logo">OA</div>
       <div>
-        <h1>GooberCraft Master</h1>
-        <p style="font-size: 0.85rem; color: var(--text-muted);">Node & Bot Ağ Yönetimi</p>
+        <h1>GooberCraft DataCenter</h1>
+        <p style="font-size: 0.8rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">Cluster Rack & Bot Infrastructure</p>
       </div>
     </div>
 
     <div class="header-actions">
       <div class="stats-summary">
-        <div class="stat-badge">Toplam Node: <span id="total-nodes">0</span></div>
-        <div class="stat-badge">Aktif Botlar: <span id="total-bots">0</span></div>
+        <div class="stat-badge">NODES: <span id="total-nodes">0</span></div>
+        <div class="stat-badge">BOTS: <span id="total-bots">0</span></div>
       </div>
-      <button class="btn-add-bot" onclick="openModal()">➕ Bot Ekle</button>
+      <button class="btn-add-bot" onclick="openModal()">+ BOT DEPLOY</button>
     </div>
   </header>
 
   <div class="container" id="server-container">
-    <div class="empty-state">Yükleniyor veya henüz aktif Node/Server bulunamadı...</div>
+    <div class="empty-state">Cluster verileri senkronize ediliyor...</div>
   </div>
 
   <!-- AÇILIR FORM PENCERESİ -->
   <div class="modal-overlay" id="addBotModal">
     <div class="modal">
       <div class="modal-header">
-        <div class="modal-title">🤖 Yeni Bot Ekle</div>
+        <div class="modal-title">🖥️ BOT DEPLOYMENT</div>
         <button class="btn-close" onclick="closeModal()">&times;</button>
       </div>
       <form id="addBotForm" onsubmit="handleAddBot(event)">
         <div class="form-group">
-          <label>Bot Kullanıcı Adı (Username)</label>
-          <input type="text" id="botUsername" placeholder="Örn: Goob_Bot" required>
+          <label>BOT USERNAME</label>
+          <input type="text" id="botUsername" placeholder="Goob_Bot_01" required>
         </div>
         <div class="form-group">
-          <label>Minecraft Sunucu IP / Host</label>
-          <input type="text" id="botHost" placeholder="Örn: play.hypixel.net" required>
+          <label>MINECRAFT HOST IP</label>
+          <input type="text" id="botHost" placeholder="play.hypixel.net" required>
         </div>
         <div class="form-group">
-          <label>Port</label>
+          <label>PORT</label>
           <input type="number" id="botPort" value="25565" required>
         </div>
-        <button type="submit" id="submitBtn" class="btn-submit">En Boş Sunucuya Atarak Başlat 🚀</button>
+        <button type="submit" id="submitBtn" class="btn-submit">DEPLOY TO NODE 🚀</button>
       </form>
     </div>
   </div>
 
   <script>
-    // 🔑 KULLANICI İÇİN EŞSİZ SAHİPLİK TOKENI
+    // 🔑 EŞSİZ KULLANICI TOKENI
     function getOwnerToken() {
       let token = localStorage.getItem('goober_owner_token');
       if (!token) {
-        token = 'user_' + Math.random().toString(36).substring(2, 11) + Date.now().toString(36);
+        token = 'usr_' + Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
         localStorage.setItem('goober_owner_token', token);
       }
       return token;
@@ -304,18 +369,13 @@
       const port = Number(document.getElementById('botPort').value);
 
       submitBtn.disabled = true;
-      submitBtn.innerText = 'Bot Bağlanıyor... ⏳';
+      submitBtn.innerText = 'DEPLOYING... ⏳';
 
       try {
         const res = await fetch('/api/bots/create', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            username, 
-            host, 
-            port, 
-            ownerToken: MY_OWNER_TOKEN // Sahiplik jetonu gönderiliyor
-          })
+          body: JSON.stringify({ username, host, port, ownerToken: MY_OWNER_TOKEN })
         });
 
         const data = await res.json();
@@ -325,13 +385,13 @@
           document.getElementById('botPort').value = '25565';
           await fetchDashboardData();
         } else {
-          alert('❌ Hata: ' + (data.message || 'Bot eklenemedi.'));
+          alert('❌ Deployment Failed: ' + (data.message || 'Hata oluştu.'));
         }
       } catch (err) {
-        alert('❌ Sunucuya bağlanırken iletişim hatası oluştu.');
+        alert('❌ Sunucu iletişim hatası.');
       } finally {
         submitBtn.disabled = false;
-        submitBtn.innerText = 'En Boş Sunucuya Atarak Başlat 🚀';
+        submitBtn.innerText = 'DEPLOY TO NODE 🚀';
       }
     }
 
@@ -342,10 +402,7 @@
         const res = await fetch('/api/bots/stop', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            id: botId,
-            ownerToken: MY_OWNER_TOKEN // Sahiplik jetonu ile silme isteği
-          })
+          body: JSON.stringify({ id: botId, ownerToken: MY_OWNER_TOKEN })
         });
 
         const data = await res.json();
@@ -355,15 +412,15 @@
           alert('❌ ' + (data.message || 'Bot durdurulamadı.'));
         }
       } catch (err) {
-        alert('❌ Sunucuyla iletişim hatası oluştu.');
+        alert('❌ Sunucu iletişim hatası.');
       }
     }
 
     async function fetchDashboardData() {
       try {
         const [nodesRes, botsRes] = await Promise.all([
-          fetch('/api/nodes'),
-          fetch('/api/bots')
+          fetch('/api/nodes?t=' + Date.now()),
+          fetch('/api/bots?t=' + Date.now())
         ]);
 
         const rawNodes = await nodesRes.json();
@@ -377,20 +434,19 @@
 
         const container = document.getElementById('server-container');
         if (nodes.length === 0) {
-          container.innerHTML = '<div class="empty-state">Henüz bağlı olan aktif Node (Server) bulunmuyor.</div>';
+          container.innerHTML = '<div class="empty-state">Aktif Node bulunamadı. Cluster bekleniyor...</div>';
           return;
         }
 
         container.innerHTML = nodes.map(node => {
           const maxBots = node.maxBots || 10;
-          
           const nodeBots = bots.filter(b => b.nodeId === node.id || b.node_id === node.id);
           const currentBots = nodeBots.length || node.currentBots || 0;
           const percentage = Math.min((currentBots / maxBots) * 100, 100);
           
-          let fillStyle = "background: linear-gradient(90deg, var(--accent), #818cf8);";
-          if (percentage >= 100) fillStyle = "background: var(--red);";
-          else if (percentage >= 80) fillStyle = "background: var(--yellow);";
+          let fillStyle = "background: var(--cyan); box-shadow: 0 0 10px var(--cyan);";
+          if (percentage >= 100) fillStyle = "background: var(--red); box-shadow: 0 0 10px var(--red);";
+          else if (percentage >= 80) fillStyle = "background: var(--yellow); box-shadow: 0 0 10px var(--yellow);";
 
           const botChipsHtml = nodeBots.length > 0 
             ? nodeBots.map(b => {
@@ -398,11 +454,11 @@
                 return `
                   <span class="bot-chip ${isMyBot ? 'mine' : ''}">
                     🤖 ${b.username}
-                    ${isMyBot ? `<span class="btn-stop" title="Senin botun - Durdur" onclick="stopBot('${b.id}', '${b.username}')">✕</span>` : ''}
+                    ${isMyBot ? `<span class="btn-stop" title="Durdur" onclick="stopBot('${b.id}', '${b.username}')">✕</span>` : ''}
                   </span>
                 `;
               }).join('')
-            : `<span class="bot-chip">Bot Yok</span>`;
+            : `<span class="bot-chip" style="opacity: 0.5;">SLOT EMPTY</span>`;
 
           const isOnline = node.online !== false;
 
@@ -410,21 +466,33 @@
             <div class="server-card">
               <div>
                 <div class="server-header">
-                  <div class="server-title">🌐 ${node.name || node.id}</div>
-                  <div class="status-indicator ${isOnline ? '' : 'offline'}">
-                    <div class="status-dot"></div> ${isOnline ? 'Aktif' : 'Çevrimdışı'}
+                  <div class="server-title">
+                    <span style="color: var(--cyan);">[RACK-01]</span> ${node.name || node.id}
+                  </div>
+                  <div class="led-group">
+                    <div class="led ${isOnline ? 'green' : 'red'}" title="Power Status"></div>
+                    <div class="led ${isOnline ? 'blue' : ''}" title="Network Link"></div>
                   </div>
                 </div>
+
+                <div class="server-metrics">
+                  <div>CPU: <span class="metric-val">${Math.floor(Math.random() * 15 + 5)}%</span></div>
+                  <div>RAM: <span class="metric-val">1.2 GB</span></div>
+                  <div>UPTIME: <span class="metric-val">99.9%</span></div>
+                  <div>LATENCY: <span class="metric-val">12ms</span></div>
+                </div>
+
                 <div class="bot-capacity">
                   <div class="capacity-info">
-                    <span>Bot Kapasitesi</span>
-                    <span><strong>${currentBots}</strong> / ${maxBots} Bot</span>
+                    <span>CAPACITY</span>
+                    <span><strong>${currentBots}</strong> / ${maxBots} UNITS</span>
                   </div>
                   <div class="progress-bar">
                     <div class="progress-fill" style="width: ${percentage}%; ${fillStyle}"></div>
                   </div>
                 </div>
               </div>
+
               <div class="bot-list">
                 ${botChipsHtml}
               </div>
@@ -433,7 +501,7 @@
         }).join('');
 
       } catch (err) {
-        console.error("Dashboard verisi güncellenirken hata:", err);
+        console.error("Cluster güncelleme hatası:", err);
       }
     }
 
