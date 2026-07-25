@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GooberCraft Master - Sunucu & Bot Paneli</title>
+  <title>GooberCraft Master - Node & Bot Paneli</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -55,7 +55,6 @@
     }
 
     .header-actions { display: flex; align-items: center; gap: 1rem; }
-
     .stats-summary { display: flex; gap: 1rem; }
 
     .stat-badge {
@@ -83,7 +82,7 @@
       align-items: center;
       gap: 8px;
       box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-      transition: transform 0.2s, background 0.2s;
+      transition: transform 0.2s, box-shadow 0.2s;
     }
 
     .btn-add-bot:hover {
@@ -105,14 +104,10 @@
       border-radius: 16px;
       padding: 1.5rem;
       backdrop-filter: blur(12px);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      position: relative;
+      transition: transform 0.2s ease;
     }
 
-    .server-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.5);
-    }
+    .server-card:hover { transform: translateY(-4px); }
 
     .server-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
     .server-title { font-size: 1.1rem; font-weight: 600; }
@@ -123,14 +118,14 @@
     }
 
     .status-indicator.offline { background: rgba(239, 68, 68, 0.1); color: var(--red); }
-    .status-dot { width: 8px; height: 8px; border-radius: 50%; background-color: var(--green); box-shadow: 0 0 8px var(--green); }
-    .status-indicator.offline .status-dot { background-color: var(--red); box-shadow: 0 0 8px var(--red); }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background-color: var(--green); }
+    .status-indicator.offline .status-dot { background-color: var(--red); }
 
     .bot-capacity { margin-bottom: 1rem; }
     .capacity-info { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; }
 
     .progress-bar { width: 100%; height: 8px; background: rgba(255, 255, 255, 0.05); border-radius: 4px; overflow: hidden; }
-    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #818cf8); border-radius: 4px; transition: width 0.3s ease; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #818cf8); border-radius: 4px; }
 
     .bot-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 1.2rem; min-height: 30px; }
     .bot-chip { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.05); padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; color: var(--text-muted); }
@@ -138,60 +133,35 @@
 
     .empty-state { text-align: center; grid-column: 1 / -1; padding: 4rem; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--card-border); color: var(--text-muted); }
 
-    /* MODAL (AÇILIR PENCERE) */
+    /* MODAL AÇILIR PENCERE */
     .modal-overlay {
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(15, 23, 42, 0.8);
-      backdrop-filter: blur(8px);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(8px);
+      display: none; align-items: center; justify-content: center; z-index: 1000;
     }
-
     .modal-overlay.show { display: flex; }
 
     .modal {
-      background: #1e293b;
-      border: 1px solid var(--card-border);
-      border-radius: 16px;
-      padding: 2rem;
-      width: 100%;
-      max-width: 420px;
+      background: #1e293b; border: 1px solid var(--card-border);
+      border-radius: 16px; padding: 2rem; width: 100%; max-width: 420px;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
     }
 
-    .modal-header {
-      display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;
-    }
-
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
     .modal-title { font-size: 1.2rem; font-weight: 700; }
     .btn-close { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
 
     .form-group { margin-bottom: 1.2rem; }
     .form-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; }
     .form-group input {
-      width: 100%;
-      background: #0f172a;
-      border: 1px solid var(--card-border);
-      padding: 0.75rem 1rem;
-      border-radius: 8px;
-      color: white;
-      outline: none;
+      width: 100%; background: #0f172a; border: 1px solid var(--card-border);
+      padding: 0.75rem 1rem; border-radius: 8px; color: white; outline: none;
     }
     .form-group input:focus { border-color: var(--accent); }
 
     .btn-submit {
-      width: 100%;
-      background: var(--accent);
-      color: white;
-      border: none;
-      padding: 0.8rem;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 0.5rem;
+      width: 100%; background: var(--accent); color: white; border: none;
+      padding: 0.8rem; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 0.5rem;
     }
     .btn-submit:hover { background: var(--accent-hover); }
   </style>
@@ -212,6 +182,7 @@
         <div class="stat-badge">Toplam Node: <span id="total-nodes">0</span></div>
         <div class="stat-badge">Aktif Botlar: <span id="total-bots">0</span></div>
       </div>
+      <!-- İŞTE BURADA! -->
       <button class="btn-add-bot" onclick="openModal()">➕ Bot Ekle</button>
     </div>
   </header>
@@ -220,7 +191,7 @@
     <div class="empty-state">Yükleniyor veya henüz aktif Node/Server bulunamadı...</div>
   </div>
 
-  <!-- BOT EKLE MODAL -->
+  <!-- AÇILIR FORM PENCERESİ (MODAL) -->
   <div class="modal-overlay" id="addBotModal">
     <div class="modal">
       <div class="modal-header">
@@ -233,14 +204,14 @@
           <input type="text" id="botUsername" placeholder="Örn: Goob_Bot" required>
         </div>
         <div class="form-group">
-          <label>Sunucu IP / Host</label>
+          <label>Minecraft Sunucu IP / Host</label>
           <input type="text" id="botHost" placeholder="Örn: play.hypixel.net" required>
         </div>
         <div class="form-group">
           <label>Port</label>
           <input type="number" id="botPort" value="25565" required>
         </div>
-        <button type="submit" class="btn-submit">En Boş Sunucuya Bağla 🚀</button>
+        <button type="submit" class="btn-submit">En Boş Sunucuya Atarak Başlat 🚀</button>
       </form>
     </div>
   </div>

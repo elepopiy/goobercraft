@@ -50,31 +50,54 @@ function resolveOptions(
 /**
  * GooberCraft Bot Factory
  */
-export function createBot(
-  options: BotOptions
-): Bot {
+export async function createBot(options: BotOptions): Promise<Bot> {
+  const resolved = resolveOptions(options);
 
-  const resolved =
-    resolveOptions(options);
+  // 1. En uygun Node'u bul
+  const node = manager.nodes.getAvailableNode();
+  const bot = new Bot(resolved);
 
-  // Gelecekte en uygun worker burada seçilecek.
-  const node =
-    manager.nodes.getAvailableNode();
+  if (node) {
+    bot.setNodeId(node.id);
 
-  const bot =
-    new Bot(resolved);
+    // 2. Eğer Node uzak bir Node ise (Local değilse) ona HTTP/Webhook isteği at
+    if (node.id !== "local" && node.url) {
+      try {
+        const response = await fetch(`${node.url}/api/bots/spawn`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: bot.getId(),
+            options: resolved
+          })
+        });
 
-  // Şimdilik local olarak kayıt ediyoruz.
+        if (!response.ok) {
+          throw new Error(`Node (${node.id}) yanıt vermedi: ${response.statusText}`);
+        }
+
+        console.log(`[GooberCraft] Bot '${resolved.username}' başarıyla ${node.id} düğümüne gönderildi.`);
+      } catch (error) {
+        console.error(`[GooberCraft] Node ile iletişim kurulamadı, local olarak başlatılıyor:`, error);
+        bot.connect(); // İletişim koparsa fallback olarak local başlat
+      }
+    } else {
+      // Node local ise doğrudan bu süreçte çalıştır
+      bot.connect();
+    }
+  } else {
+    // Uygun Node yoksa varsayılan local çalıştır
+    bot.connect();
+  }
+
+  // 3. Master state kaydı
   manager.bots.add({
     id: bot.getId(),
     username: resolved.username,
-    nodeId: node?.id ?? "local",
+    nodeId: bot.getNodeId() ?? "local",
     online: true,
     createdAt: bot.getCreatedAt()
   });
 
-  bot.connect();
-
   return bot;
-
 }
