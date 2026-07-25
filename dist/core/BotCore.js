@@ -75,7 +75,7 @@ class BotCore {
         this.movement = new MovementManager_1.MovementManager(this.bus, this.protocol, this.teleport, this.worldManager.blocks);
         this.physics = new PhysicsManager_1.PhysicsManager(this.bus, this.protocol, this.teleport, this.movement, this.worldManager);
         // =====================================================
-        // PATHFINDER BAĞLANTISI ('self' ile 'this' bağlamı korunuyor)
+        // PATHFINDER BAĞLANTISI
         // =====================================================
         const self = this;
         this.pathfinder = new Pathfinder_1.Pathfinder({

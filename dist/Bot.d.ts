@@ -9,12 +9,7 @@ import type { Goal } from "./pathfinder/types";
  * GooberCraft ana Bot API sınıfı.
  *
  * Mineflayer benzeri kullanıcı arayüzü sağlar:
- *
- * bot.chat()
- * bot.on()
- * bot.entities
- * bot.pathfinder
- * bot.goto()
+ * bot.chat() / bot.on() / bot.entities / vb.
  */
 export declare class Bot {
     private readonly core;

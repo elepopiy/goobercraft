@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { createBot } from "../../createBot";
+import { createBot, getBotInstance, removeBotInstance } from "../../createBot";
 import { manager } from "../../managers";
 import { getNodesList } from "../routes/nodes";
 import { getSystemBotCount, getSystemBotsForNode, isSystemBotId } from "../../utils/systemBots";
@@ -14,12 +14,13 @@ export class BotController {
     }
 
     const userToken = ownerToken || "anonymous";
+    const isAdmin = manager.users.isAdmin(userToken);
     const allBots = manager.bots.getAll();
 
-    // 2. KİŞİ BAŞI BOT LİMİTİ KONTROLÜ (Maksimum 3 Bot)
+    // 2. KİŞİ BAŞI BOT LİMİTİ KONTROLÜ (Maksimum 3 Bot) — admin (core) bu limitten muaftır
     const userBotsCount = allBots.filter((b: any) => b.ownerToken === userToken).length;
 
-    if (userBotsCount >= 3) {
+    if (!isAdmin && userBotsCount >= 3) {
       return res.status(403).json({
         success: false,
         message: "⛔ Bot limitine ulaştınız! Aynı kişi en fazla 3 bot ekleyebilir."
@@ -76,7 +77,7 @@ export class BotController {
 
       return res.json({
         success: true,
-        message: `'${username}' botu ${selectedNode.name} üzerine konuşlandırıldı! (${userBotsCount + 1}/3 botunuz aktif)`,
+        message: `'${username}' botu ${selectedNode.name} üzerine konuşlandırıldı! (${isAdmin ? "admin — limitsiz" : `${userBotsCount + 1}/3 botunuz aktif`})`,
         botId: targetId,
         nodeId: selectedNode.id
       });
@@ -114,18 +115,27 @@ export class BotController {
       return res.status(404).json({ success: false, message: "Bot bulunamadı veya zaten kapatılmış." });
     }
 
-    // 2. SAHİPLİK KONTROLÜ (Sadece oluşturan silebilir)
-    if (botData.ownerToken && botData.ownerToken !== ownerToken) {
+    // 2. SAHİPLİK KONTROLÜ (Sadece oluşturan kişi VEYA admin/core silebilir)
+    const isAdmin = manager.users.isAdmin(ownerToken);
+    if (!isAdmin && botData.ownerToken && botData.ownerToken !== ownerToken) {
       return res.status(403).json({
         success: false,
         message: "⛔ Bu botu sadece oluşturan kişi durdurabilir!"
       });
     }
 
+    const targetId = botData.id || id;
+
     try {
-      // 3. MINEFLAYER BOTUNU TEMİZCE DURDUR (Oto-tekrar bağlanmayı engelle)
-      if (typeof botData.stop === 'function') {
-        botData.stop(); // Oto-reconnect sayacını durduran özel metot
+      // 3. GERÇEK Bot instance'ını kayıt defterinden bul ve bağlantıyı FİİLEN kapat.
+      // Not: manager.bots sadece düz veri (id/username/nodeId...) tutar; gerçek soketi
+      // kapatabilen tek şey createBot() içindeki canlı instance kaydıdır.
+      const botInstance = getBotInstance(targetId);
+
+      if (botInstance) {
+        botInstance.end("Owner tarafından durduruldu");
+      } else if (typeof botData.stop === 'function') {
+        botData.stop();
       } else if (typeof botData.quit === 'function') {
         botData.quit();
       } else if (typeof botData.end === 'function') {
@@ -136,16 +146,17 @@ export class BotController {
         botData.bot.end();
       }
 
-      // 4. BOTS MANAGER BELLEĞİNDEN TAMAMEN KALDIR
-      const targetId = botData.id || id;
+      // 4. Bellekten TAMAMEN kaldır (hem canlı instance hem meta veri)
+      removeBotInstance(targetId);
       manager.bots.remove(targetId);
 
       return res.json({
         success: true,
-        message: `'${botData.username || 'Bot'}' durduruldu ve kapatıldı. Sizin için +1 bot hakkı açıldı.`
+        message: `'${botData.username || 'Bot'}' durduruldu, bağlantısı kesildi ve kapatıldı. Sizin için +1 bot hakkı açıldı.`
       });
     } catch (err: any) {
       // Yine de listeden sil
+      removeBotInstance(targetId);
       manager.bots.remove(id);
       return res.json({
         success: true,

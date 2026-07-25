@@ -4,7 +4,6 @@ exports.ProtocolManager = void 0;
 const minecraft_protocol_1 = require("minecraft-protocol");
 const Logger_1 = require("../utils/Logger");
 const MovementPacketCompat_1 = require("../utils/MovementPacketCompat");
-const managers_1 = require("../managers"); // 👈 MANAGER IMPORT'U EKLENDİ
 /**
  * ProtocolManager, minecraft-protocol'un düşük seviye Client'ını yönetir.
  */
@@ -18,24 +17,17 @@ class ProtocolManager {
         this.bus = bus;
     }
     connect() {
-        // 🚀 CANLI KAYIT KANCASI (HOOK):
-        // Bot ne zaman bağlanmaya çalışsa, Master Node yoksa anında oluşturulur ve aktif kılınır!
-        if (managers_1.manager && managers_1.manager.nodes) {
-            managers_1.manager.nodes.registerNode({
-                id: "master-node-1",
-                name: "GooberCraft Master Node",
-                url: "http://localhost:10000",
-                maxBots: 10
-            });
-        }
-        Logger_1.Logger.info("ProtocolManager", `${this.options.host}:${this.options.port} adresine bağlanılıyor...`);
+        const targetPort = Number(this.options.port) || 25565;
+        Logger_1.Logger.info("ProtocolManager", `${this.options.host}:${targetPort} adresine bağlanılıyor...`);
         this.client = (0, minecraft_protocol_1.createClient)({
             host: this.options.host,
-            port: this.options.port,
+            port: targetPort,
             username: this.options.username,
             password: this.options.password,
-            auth: this.options.auth,
-            version: this.options.version === "auto" ? undefined : this.options.version,
+            // Eğer auth belirtilmediyse varsayılan olarak 'offline' (crackli) giriş yapmayı dener
+            auth: this.options.auth || "offline",
+            // 'auto' yerine false vermek minecraft-protocol'da versiyon algılamayı daha iyi tetikler
+            version: this.options.version === "auto" ? false : this.options.version,
             checkTimeoutInterval: this.options.checkTimeoutInterval,
             keepAlive: false, // KeepAliveManager kendi mantığını yürütecek
         });

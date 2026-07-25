@@ -1289,8 +1289,8 @@
           <i class="fa-solid fa-rocket"></i> DEPLOY INSTANCE
         </button>
         
-        <div class="user-profile" onclick="showToast('info', 'Profile', 'Goober Admin Account')">
-          <div class="avatar">G</div>
+        <div class="user-profile" id="userProfileBtn" onclick="openAuthModal()" title="Hesap / Giriş">
+          <div class="avatar" id="userAvatar">?</div>
         </div>
       </div>
     </header>
@@ -1531,6 +1531,33 @@
     </div>
   </div>
 
+  <!-- ACCOUNT / AUTH MODAL -->
+  <div class="modal-overlay" id="authModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="authModalTitle"><i class="fa-solid fa-user-lock"></i> GİRİŞ YAP</div>
+        <button class="btn-close" onclick="closeModals()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="authForm" onsubmit="handleAuthSubmit(event)">
+        <div class="form-group">
+          <label>KULLANICI ADI</label>
+          <input type="text" id="authUsername" placeholder="kullanici_adi" required autocomplete="off" maxlength="24">
+        </div>
+        <div class="form-group">
+          <label>ŞİFRE</label>
+          <input type="password" id="authPassword" placeholder="********" required autocomplete="off" minlength="6">
+          <span class="form-text" id="authFormHint">Hesabın yoksa aşağıdan kayıt olabilirsin.</span>
+        </div>
+        <button type="submit" id="authSubmitBtn" class="btn-submit">
+          <i class="fa-solid fa-right-to-bracket"></i> GİRİŞ YAP
+        </button>
+        <button type="button" class="btn-submit" style="margin-top: 0.75rem; background: transparent; border: 1px solid var(--border-light); color: var(--text-muted);" onclick="toggleAuthMode()" id="authToggleBtn">
+          Hesabın yok mu? Kayıt ol
+        </button>
+      </form>
+    </div>
+  </div>
+
   <!-- INSPECT RACK MODAL -->
   <div class="modal-overlay" id="inspectorModal">
     <div class="modal" style="max-width: 650px;">
@@ -1579,6 +1606,11 @@
        A. USER IDENTIFICATION & CORE STATE
        -------------------------------------------------------------------------- */
     function getOwnerToken() {
+      // Önce gerçek hesap girişi var mı bak (login/register sonrası backend'in verdiği token)
+      const sessionToken = localStorage.getItem('goober_session_token');
+      if (sessionToken) return sessionToken;
+
+      // Giriş yapılmamışsa eskisi gibi anonim bir misafir token'ı üret
       let token = localStorage.getItem('goober_owner_token');
       if (!token) {
         token = 'GC_' + Math.random().toString(36).substring(2, 10).toUpperCase() + '_' + Date.now().toString(16);
@@ -1586,9 +1618,105 @@
       }
       return token;
     }
-    
-    const MY_OWNER_TOKEN = getOwnerToken();
+
+    let MY_OWNER_TOKEN = getOwnerToken();
+    let MY_USERNAME = localStorage.getItem('goober_username') || null;
+    let MY_ROLE = localStorage.getItem('goober_role') || 'guest';
     console.log("Session authenticated. Token: " + MY_OWNER_TOKEN);
+
+    function updateAccountUI() {
+      const avatar = document.getElementById('userAvatar');
+      const btn = document.getElementById('userProfileBtn');
+      if (!avatar || !btn) return;
+
+      if (MY_USERNAME) {
+        avatar.textContent = MY_USERNAME.charAt(0).toUpperCase();
+        btn.title = `${MY_USERNAME} (${MY_ROLE === 'admin' ? 'ADMIN' : 'user'}) — çıkış için tıkla`;
+        btn.onclick = () => {
+          if (confirm(`${MY_USERNAME} hesabından çıkış yapılsın mı?`)) {
+            localStorage.removeItem('goober_session_token');
+            localStorage.removeItem('goober_username');
+            localStorage.removeItem('goober_role');
+            location.reload();
+          }
+        };
+      } else {
+        avatar.textContent = '?';
+        btn.title = 'Hesap / Giriş';
+        btn.onclick = () => openAuthModal();
+      }
+    }
+
+    let authMode = 'login'; // 'login' | 'register'
+
+    function openAuthModal() {
+      document.getElementById('authModal').classList.add('show');
+    }
+
+    function toggleAuthMode() {
+      authMode = authMode === 'login' ? 'register' : 'login';
+      const title = document.getElementById('authModalTitle');
+      const hint = document.getElementById('authFormHint');
+      const submitBtn = document.getElementById('authSubmitBtn');
+      const toggleBtn = document.getElementById('authToggleBtn');
+
+      if (authMode === 'register') {
+        title.innerHTML = '<i class="fa-solid fa-user-plus"></i> HESAP OLUŞTUR';
+        hint.textContent = 'En az 3 karakter kullanıcı adı, en az 6 karakter şifre.';
+        submitBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i> HESAP OLUŞTUR';
+        toggleBtn.textContent = 'Zaten hesabın var mı? Giriş yap';
+      } else {
+        title.innerHTML = '<i class="fa-solid fa-user-lock"></i> GİRİŞ YAP';
+        hint.textContent = 'Hesabın yoksa aşağıdan kayıt olabilirsin.';
+        submitBtn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> GİRİŞ YAP';
+        toggleBtn.textContent = 'Hesabın yok mu? Kayıt ol';
+      }
+    }
+
+    async function handleAuthSubmit(e) {
+      e.preventDefault();
+      const username = document.getElementById('authUsername').value.trim();
+      const password = document.getElementById('authPassword').value;
+      const endpoint = authMode === 'register' ? '/api/auth/register' : '/api/auth/login';
+      const submitBtn = document.getElementById('authSubmitBtn');
+
+      submitBtn.disabled = true;
+
+      try {
+        const res = await fetch(`${API_BASE}${endpoint}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await res.json();
+
+        if (!data.success) {
+          showToast('error', authMode === 'register' ? 'Kayıt Başarısız' : 'Giriş Başarısız', data.message || 'Bilinmeyen hata.');
+          submitBtn.disabled = false;
+          return;
+        }
+
+        localStorage.setItem('goober_session_token', data.token);
+        localStorage.setItem('goober_username', data.username);
+        localStorage.setItem('goober_role', data.role);
+
+        MY_OWNER_TOKEN = data.token;
+        MY_USERNAME = data.username;
+        MY_ROLE = data.role;
+
+        updateAccountUI();
+        closeModals();
+        document.getElementById('authForm').reset();
+        showToast('success', authMode === 'register' ? 'Hesap Oluşturuldu' : 'Giriş Yapıldı', data.message);
+        addLogEntry('success', `Hesap oturumu açıldı: ${data.username} (${data.role})`);
+        await refreshData();
+      } catch (err) {
+        showToast('error', 'Connection Error', `Backend'e ulasilamadi (${API_BASE}${endpoint}): ${err.message}`);
+      }
+
+      submitBtn.disabled = false;
+    }
 
     // Backend farklı bir origin/port'ta çalışıyorsa burayı değiştir, örn: 'http://localhost:10000'
     // Aynı Express sunucusu hem bu HTML'i hem /api rotalarını sunuyorsa boş bırak.
@@ -2190,6 +2318,7 @@
     window.onload = () => {
       resizeCanvas();
       animateNetwork();
+      updateAccountUI();
 
       refreshData().then(() => {
         if (state.nodes.length > 0) {

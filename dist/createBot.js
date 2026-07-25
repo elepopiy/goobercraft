@@ -1,5 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.getBotInstance = getBotInstance;
+exports.registerBotInstance = registerBotInstance;
+exports.removeBotInstance = removeBotInstance;
+exports.getLiveBotCount = getLiveBotCount;
 exports.createBot = createBot;
 const Bot_1 = require("./Bot");
 const managers_1 = require("./managers");
@@ -11,6 +15,27 @@ const DEFAULTS = {
     checkTimeoutInterval: 30000,
     respawnOnDeath: true,
 };
+/**
+ * CANLI Bot instance kayıt defteri.
+ *
+ * manager.bots (BotManager) sadece DÜZ VERİ (id/username/nodeId/...) tutar — .end()
+ * gibi metodları olan gerçek Bot nesnesi değildir. Terminate/stop işleminin fiilen
+ * bağlantıyı kesebilmesi için gerçek Bot instance'larını burada, id -> Bot şeklinde
+ * ayrı tutuyoruz.
+ */
+const liveBots = new Map();
+function getBotInstance(id) {
+    return liveBots.get(id);
+}
+function registerBotInstance(id, bot) {
+    liveBots.set(id, bot);
+}
+function removeBotInstance(id) {
+    return liveBots.delete(id);
+}
+function getLiveBotCount() {
+    return liveBots.size;
+}
 function resolveOptions(options) {
     if (!options.host)
         throw new Error("GooberCraft: 'host' zorunludur.");
@@ -36,6 +61,8 @@ async function createBot(options) {
     // 1. En uygun Node'u seç (En boş olanı getirir)
     const node = managers_1.manager.nodes.getAvailableNode();
     const bot = new Bot_1.Bot(resolved);
+    // Gerçek instance'ı hemen kayıt defterine ekle — stop() bunu bulup .end() çağırabilsin
+    registerBotInstance(bot.getId(), bot);
     if (node) {
         bot.setNodeId(node.id);
         // Node üzerindeki bot sayacını artır
@@ -85,6 +112,11 @@ async function createBot(options) {
         nodeId: assignedNodeId,
         online: true,
         createdAt: bot.getCreatedAt()
+    });
+    // Bot kendi kendine düşerse (disconnect/kick/hata) kayıt defterinden de düşür,
+    // aksi halde "hayalet" instance'lar bellekte birikir.
+    bot.once("end", () => {
+        removeBotInstance(bot.getId());
     });
     return bot;
 }

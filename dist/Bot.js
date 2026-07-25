@@ -10,12 +10,7 @@ const crypto_1 = __importDefault(require("crypto"));
  * GooberCraft ana Bot API sınıfı.
  *
  * Mineflayer benzeri kullanıcı arayüzü sağlar:
- *
- * bot.chat()
- * bot.on()
- * bot.entities
- * bot.pathfinder
- * bot.goto()
+ * bot.chat() / bot.on() / bot.entities / vb.
  */
 class Bot {
     core;
@@ -136,18 +131,14 @@ class Bot {
         this.core.movement.swingArm(hand);
     }
     attack(entityOrId) {
-        const id = typeof entityOrId === "number"
-            ? entityOrId
-            : entityOrId.id;
+        const id = typeof entityOrId === "number" ? entityOrId : entityOrId.id;
         this.core.movement.attack(id);
     }
     useItem(hand = "right") {
         this.core.movement.useItem(hand);
     }
     interactEntity(entityOrId, hand = "right") {
-        const id = typeof entityOrId === "number"
-            ? entityOrId
-            : entityOrId.id;
+        const id = typeof entityOrId === "number" ? entityOrId : entityOrId.id;
         this.core.movement.interactEntity(id, hand);
     }
     placeBlock(referencePosition, face) {
@@ -184,8 +175,7 @@ class Bot {
         return this.core.entities.nearest(this.position, predicate);
     }
     nearestPlayer() {
-        return this.core.entities.nearest(this.position, (e) => (e.isPlayer &&
-            e.id !== this.core.login.playerEntityId));
+        return this.core.entities.nearest(this.position, (e) => e.isPlayer && e.id !== this.core.login.playerEntityId);
     }
     // ============================================================
     // WORLD

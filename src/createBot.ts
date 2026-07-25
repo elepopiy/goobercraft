@@ -14,6 +14,32 @@ const DEFAULTS: Omit<
   respawnOnDeath: true,
 };
 
+/**
+ * CANLI Bot instance kayıt defteri.
+ *
+ * manager.bots (BotManager) sadece DÜZ VERİ (id/username/nodeId/...) tutar — .end()
+ * gibi metodları olan gerçek Bot nesnesi değildir. Terminate/stop işleminin fiilen
+ * bağlantıyı kesebilmesi için gerçek Bot instance'larını burada, id -> Bot şeklinde
+ * ayrı tutuyoruz.
+ */
+const liveBots = new Map<string, Bot>();
+
+export function getBotInstance(id: string): Bot | undefined {
+  return liveBots.get(id);
+}
+
+export function registerBotInstance(id: string, bot: Bot): void {
+  liveBots.set(id, bot);
+}
+
+export function removeBotInstance(id: string): boolean {
+  return liveBots.delete(id);
+}
+
+export function getLiveBotCount(): number {
+  return liveBots.size;
+}
+
 function resolveOptions(options: BotOptions): ResolvedBotOptions {
   if (!options.host)
     throw new Error("GooberCraft: 'host' zorunludur.");
@@ -43,6 +69,9 @@ export async function createBot(options: BotOptions): Promise<Bot> {
   // 1. En uygun Node'u seç (En boş olanı getirir)
   const node = manager.nodes.getAvailableNode();
   const bot = new Bot(resolved);
+
+  // Gerçek instance'ı hemen kayıt defterine ekle — stop() bunu bulup .end() çağırabilsin
+  registerBotInstance(bot.getId(), bot);
 
   if (node) {
     bot.setNodeId(node.id);
@@ -98,6 +127,12 @@ export async function createBot(options: BotOptions): Promise<Bot> {
     nodeId: assignedNodeId,
     online: true,
     createdAt: bot.getCreatedAt()
+  });
+
+  // Bot kendi kendine düşerse (disconnect/kick/hata) kayıt defterinden de düşür,
+  // aksi halde "hayalet" instance'lar bellekte birikir.
+  bot.once("end", () => {
+    removeBotInstance(bot.getId());
   });
 
   return bot;
