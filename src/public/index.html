@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GooberCraft - Server Dashboard</title>
+  <title>GooberCraft Master - Sunucu & Bot Paneli</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -19,12 +19,7 @@
       --text-muted: #94a3b8;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Inter', sans-serif;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
 
     body {
       background-color: var(--bg-color);
@@ -44,11 +39,7 @@
       align-items: center;
     }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+    .brand { display: flex; align-items: center; gap: 12px; }
 
     .brand-logo {
       width: 42px;
@@ -63,10 +54,7 @@
       box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
     }
 
-    .stats-summary {
-      display: flex;
-      gap: 1.5rem;
-    }
+    .stats-summary { display: flex; gap: 1.5rem; }
 
     .stat-badge {
       background: var(--card-bg);
@@ -78,10 +66,7 @@
       color: var(--text-muted);
     }
 
-    .stat-badge span {
-      color: var(--text);
-      font-weight: 600;
-    }
+    .stat-badge span { color: var(--text); font-weight: 600; }
 
     .container {
       max-width: 1200px;
@@ -99,7 +84,6 @@
       backdrop-filter: blur(12px);
       transition: transform 0.2s ease, box-shadow 0.2s ease;
       position: relative;
-      overflow: hidden;
     }
 
     .server-card:hover {
@@ -107,110 +91,37 @@
       box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.5);
     }
 
-    .server-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1rem;
-    }
-
-    .server-title {
-      font-size: 1.1rem;
-      font-weight: 600;
-    }
+    .server-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .server-title { font-size: 1.1rem; font-weight: 600; }
 
     .status-indicator {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.8rem;
-      padding: 4px 10px;
-      border-radius: 20px;
-      background: rgba(16, 185, 129, 0.1);
-      color: var(--green);
+      display: flex; align-items: center; gap: 6px; font-size: 0.8rem;
+      padding: 4px 10px; border-radius: 20px; background: rgba(16, 185, 129, 0.1); color: var(--green);
+    }
+
+    .status-indicator.offline {
+      background: rgba(239, 68, 68, 0.1); color: var(--red);
     }
 
     .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background-color: var(--green);
-      box-shadow: 0 0 8px var(--green);
+      width: 8px; height: 8px; border-radius: 50%; background-color: var(--green); box-shadow: 0 0 8px var(--green);
     }
 
-    .bot-capacity {
-      margin-bottom: 1rem;
+    .status-indicator.offline .status-dot {
+      background-color: var(--red); box-shadow: 0 0 8px var(--red);
     }
 
-    .capacity-info {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      margin-bottom: 0.4rem;
-    }
+    .bot-capacity { margin-bottom: 1rem; }
+    .capacity-info { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; }
 
-    .progress-bar {
-      width: 100%;
-      height: 8px;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 4px;
-      overflow: hidden;
-    }
+    .progress-bar { width: 100%; height: 8px; background: rgba(255, 255, 255, 0.05); border-radius: 4px; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #818cf8); border-radius: 4px; transition: width 0.3s ease; }
 
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--accent), #818cf8);
-      border-radius: 4px;
-      transition: width 0.3s ease;
-    }
+    .bot-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 1.2rem; min-height: 30px; }
+    .bot-chip { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.05); padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; color: var(--text-muted); }
+    .bot-chip.active { color: var(--text); border-color: rgba(99, 102, 241, 0.3); }
 
-    .bot-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 1.2rem;
-    }
-
-    .bot-chip {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      color: var(--text-muted);
-    }
-
-    .bot-chip.active {
-      color: var(--text);
-      border-color: rgba(99, 102, 241, 0.3);
-    }
-
-    .card-footer {
-      margin-top: 1.2rem;
-      padding-top: 1rem;
-      border-top: 1px solid var(--card-border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.8rem;
-      color: var(--text-muted);
-    }
-
-    .btn-connect {
-      background: var(--accent);
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .btn-connect:hover {
-      background: var(--accent-hover);
-    }
+    .empty-state { text-align: center; grid-column: 1 / -1; padding: 4rem; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--card-border); color: var(--text-muted); }
   </style>
 </head>
 <body>
@@ -219,112 +130,90 @@
     <div class="brand">
       <div class="brand-logo">G</div>
       <div>
-        <h1>GooberCraft</h1>
-        <p style="font-size: 0.85rem; color: var(--text-muted);">Bot & Sunucu Ağ Yönetimi</p>
+        <h1>GooberCraft Master</h1>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">Node & Bot Ağ Yönetimi</p>
       </div>
     </div>
 
     <div class="stats-summary">
-      <div class="stat-badge">Toplam Sunucu: <span id="total-servers">3</span></div>
-      <div class="stat-badge">Aktif Botlar: <span id="total-bots">18 / 30</span></div>
+      <div class="stat-badge">Toplam Node: <span id="total-nodes">0</span></div>
+      <div class="stat-badge">Aktif Botlar: <span id="total-bots">0</span></div>
     </div>
   </header>
 
   <div class="container" id="server-container">
-    <!-- Örnek Sunucu Kartı 1 -->
-    <div class="server-card">
-      <div class="server-header">
-        <div class="server-title">🌐 Node-01 (Survival)</div>
-        <div class="status-indicator">
-          <div class="status-dot"></div> Aktif
-        </div>
-      </div>
-      <div class="bot-capacity">
-        <div class="capacity-info">
-          <span>Bot Kapasitesi</span>
-          <span><strong>8</strong> / 10 Bot</span>
-        </div>
-        <div class="progress-bar">
-          <div class="progress-fill" style="width: 80%;"></div>
-        </div>
-      </div>
-      <div class="bot-list">
-        <span class="bot-chip active">🤖 Goob_01</span>
-        <span class="bot-chip active">🤖 Goob_02</span>
-        <span class="bot-chip active">🤖 Goob_03</span>
-        <span class="bot-chip active">🤖 Goob_04</span>
-        <span class="bot-chip active">🤖 Goob_05</span>
-        <span class="bot-chip active">🤖 Goob_06</span>
-        <span class="bot-chip active">🤖 Goob_07</span>
-        <span class="bot-chip active">🤖 Goob_08</span>
-      </div>
-      <div class="card-footer">
-        <span>Gecikme: 24ms</span>
-        <button class="btn-connect">Yönet</button>
-      </div>
-    </div>
-
-    <!-- Örnek Sunucu Kartı 2 -->
-    <div class="server-card">
-      <div class="server-header">
-        <div class="server-title">🌐 Node-02 (Lobby)</div>
-        <div class="status-indicator">
-          <div class="status-dot"></div> Aktif
-        </div>
-      </div>
-      <div class="bot-capacity">
-        <div class="capacity-info">
-          <span>Bot Kapasitesi</span>
-          <span><strong>10</strong> / 10 Bot (Dolu)</span>
-        </div>
-        <div class="progress-bar">
-          <div class="progress-fill" style="width: 100%; background: var(--yellow);"></div>
-        </div>
-      </div>
-      <div class="bot-list">
-        <span class="bot-chip active">🤖 Worker_A1</span>
-        <span class="bot-chip active">🤖 Worker_A2</span>
-        <span class="bot-chip active">🤖 Worker_A3</span>
-        <span class="bot-chip active">🤖 Worker_A4</span>
-        <span class="bot-chip active">🤖 Worker_A5</span>
-        <span class="bot-chip active">🤖 Worker_A6</span>
-        <span class="bot-chip active">🤖 Worker_A7</span>
-        <span class="bot-chip active">🤖 Worker_A8</span>
-        <span class="bot-chip active">🤖 Worker_A9</span>
-        <span class="bot-chip active">🤖 Worker_A10</span>
-      </div>
-      <div class="card-footer">
-        <span>Gecikme: 18ms</span>
-        <button class="btn-connect">Yönet</button>
-      </div>
-    </div>
-
-    <!-- Örnek Sunucu Kartı 3 -->
-    <div class="server-card">
-      <div class="server-header">
-        <div class="server-title">🌐 Node-03 (Minigames)</div>
-        <div class="status-indicator">
-          <div class="status-dot"></div> Aktif
-        </div>
-      </div>
-      <div class="bot-capacity">
-        <div class="capacity-info">
-          <span>Bot Kapasitesi</span>
-          <span><strong>0</strong> / 10 Bot</span>
-        </div>
-        <div class="progress-bar">
-          <div class="progress-fill" style="width: 0%;"></div>
-        </div>
-      </div>
-      <div class="bot-list">
-        <span class="bot-chip">Boş Yuva</span>
-      </div>
-      <div class="card-footer">
-        <span>Gecikme: 32ms</span>
-        <button class="btn-connect">Yönet</button>
-      </div>
-    </div>
+    <div class="empty-state">Yükleniyor veya henüz aktif Node/Server bulunamadı...</div>
   </div>
 
+  <script>
+    async function fetchDashboardData() {
+      try {
+        const [nodesRes, botsRes] = await Promise.all([
+          fetch('/api/nodes'),
+          fetch('/api/bots')
+        ]);
+
+        const nodesData = await nodesRes.json();
+        const botsData = await botsRes.json();
+
+        const nodes = nodesData.nodes || [];
+        const bots = botsData.bots || [];
+
+        document.getElementById('total-nodes').innerText = nodes.length;
+        document.getElementById('total-bots').innerText = bots.length;
+
+        const container = document.getElementById('server-container');
+        if (nodes.length === 0) {
+          container.innerHTML = '<div class="empty-state">Henüz bağlı olan aktif Node (Server) bulunmuyor.</div>';
+          return;
+        }
+
+        container.innerHTML = nodes.map(node => {
+          const maxBots = node.maxBots || 10; // Her Node için max 10 bot sınırı
+          const nodeBots = bots.filter(b => b.nodeId === node.id);
+          const currentBots = nodeBots.length || node.currentBots || 0;
+          const percentage = Math.min((currentBots / maxBots) * 100, 100);
+          
+          let fillStyle = "background: linear-gradient(90deg, var(--accent), #818cf8);";
+          if (percentage >= 100) fillStyle = "background: var(--red);";
+          else if (percentage >= 80) fillStyle = "background: var(--yellow);";
+
+          const botChipsHtml = nodeBots.length > 0 
+            ? nodeBots.map(b => `<span class="bot-chip active">🤖 ${b.username}</span>`).join('')
+            : `<span class="bot-chip">Bot Yok</span>`;
+
+          return `
+            <div class="server-card">
+              <div class="server-header">
+                <div class="server-title">🌐 ${node.name || node.id}</div>
+                <div class="status-indicator ${node.online ? '' : 'offline'}">
+                  <div class="status-dot"></div> ${node.online ? 'Aktif' : 'Çevrimdışı'}
+                </div>
+              </div>
+              <div class="bot-capacity">
+                <div class="capacity-info">
+                  <span>Bot Kapasitesi</span>
+                  <span><strong>${currentBots}</strong> / ${maxBots} Bot</span>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress-fill" style="width: ${percentage}%; ${fillStyle}"></div>
+                </div>
+              </div>
+              <div class="bot-list">
+                ${botChipsHtml}
+              </div>
+            </div>
+          `;
+        }).join('');
+
+      } catch (err) {
+        console.error("Dashboard verisi çekilirken hata oluştu:", err);
+      }
+    }
+
+    // Her 3 saniyede bir verileri canlı güncelle
+    setInterval(fetchDashboardData, 3000);
+    fetchDashboardData();
+  </script>
 </body>
 </html>
