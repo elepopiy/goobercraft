@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { createBot } from "../../createBot";
 import { manager } from "../../managers";
-import { nodesList } from "../routes/nodes";
+import { getNodesList } from "../routes/nodes";
 import { getSystemBotCount, getSystemBotsForNode, isSystemBotId } from "../../utils/systemBots";
 
 export class BotController {
@@ -26,7 +26,16 @@ export class BotController {
       });
     }
 
-    // 3. EN BOŞ RACK'İ BULMA (Yük Dengeleme) - sistem botları da kapasiteye dahil edilir
+    // 3. EN BOŞ RACK'İ BULMA (Yük Dengeleme) - GÜNCEL node listesi + sistem botları dahil kapasite
+    const nodesList = getNodesList();
+
+    if (!nodesList || nodesList.length === 0) {
+      return res.status(500).json({
+        success: false,
+        message: "⛔ Kayıtlı hiçbir node yok. Sunucu başlangıcında master node kaydı yapılmamış olabilir."
+      });
+    }
+
     let selectedNode: any = null;
     let minBotCount = Infinity;
 
@@ -156,7 +165,7 @@ export class BotController {
       isSystem: false
     }));
 
-    const systemBots = nodesList.flatMap((node: any) => getSystemBotsForNode(node));
+    const systemBots = getNodesList().flatMap((node: any) => getSystemBotsForNode(node));
 
     return res.json({
       success: true,

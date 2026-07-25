@@ -1281,7 +1281,7 @@
             <i class="fa-solid fa-robot"></i> <span id="global-bots">0</span> Bots
           </div>
           <div class="stat-mini">
-            <i class="fa-solid fa-bolt"></i> <span id="global-ping">12ms</span> Ping
+            <i class="fa-solid fa-bolt"></i> <span id="global-ping">--</span> Ping
           </div>
         </div>
         
@@ -1310,51 +1310,51 @@
         </div>
 
         <div class="dashboard-grid">
-          <!-- Stat Card 1 -->
+          <!-- Stat Card 1: real total slot capacity across all nodes reported by the backend -->
           <div class="card stat-card primary">
             <div class="stat-card-header">
-              <span>TOTAL INVOCATIONS</span>
+              <span>TOTAL CLUSTER CAPACITY</span>
               <div class="stat-card-icon"><i class="fa-solid fa-microchip"></i></div>
             </div>
-            <div class="stat-card-value">24,592 <span style="font-size: 1rem; color: var(--text-muted)">ops/s</span></div>
-            <div class="stat-card-trend"><i class="fa-solid fa-arrow-trend-up"></i> +14.5% from last hour</div>
+            <div class="stat-card-value"><span id="stat-total-capacity">0</span> <span style="font-size: 1rem; color: var(--text-muted)">slots</span></div>
+            <div class="stat-card-trend"><i class="fa-solid fa-server"></i> <span id="stat-node-count">0</span> node(s) reporting</div>
           </div>
           
-          <!-- Stat Card 2 -->
+          <!-- Stat Card 2: real bot count (system + real), same figure the node grid uses -->
           <div class="card stat-card cyan">
             <div class="stat-card-header">
               <span>ACTIVE BOT SESSIONS</span>
               <div class="stat-card-icon"><i class="fa-solid fa-robot"></i></div>
             </div>
             <div class="stat-card-value" id="dash-bot-count">0</div>
-            <div class="stat-card-trend"><i class="fa-solid fa-arrow-trend-up"></i> Stable allocation</div>
+            <div class="stat-card-trend"><i class="fa-solid fa-shield-halved"></i> incl. <span id="stat-system-bot-count">0</span> system-protected</div>
           </div>
 
-          <!-- Stat Card 3 -->
+          <!-- Stat Card 3: real average CPU load across nodes, from GET /api/nodes -->
           <div class="card stat-card warning">
             <div class="stat-card-header">
-              <span>NETWORK LOAD</span>
+              <span>AVG NODE CPU LOAD</span>
               <div class="stat-card-icon"><i class="fa-solid fa-network-wired"></i></div>
             </div>
-            <div class="stat-card-value">42.8 <span style="font-size: 1rem; color: var(--text-muted)">TB/m</span></div>
-            <div class="stat-card-trend" style="color: var(--color-warning)"><i class="fa-solid fa-minus"></i> Approaching threshold</div>
+            <div class="stat-card-value"><span id="stat-avg-cpu">0</span><span style="font-size: 1rem; color: var(--text-muted)">%</span></div>
+            <div class="stat-card-trend"><i class="fa-solid fa-clock"></i> last sync: <span id="stat-last-sync">-</span></div>
           </div>
 
-          <!-- Stat Card 4 -->
+          <!-- Stat Card 4: real capacity headroom, computed from actual bot count vs actual max slots -->
           <div class="card stat-card success">
             <div class="stat-card-header">
-              <span>SYSTEM HEALTH</span>
+              <span>FREE CAPACITY</span>
               <div class="stat-card-icon"><i class="fa-solid fa-heart-pulse"></i></div>
             </div>
-            <div class="stat-card-value">99.99%</div>
-            <div class="stat-card-trend"><i class="fa-solid fa-check-double"></i> All clusters nominal</div>
+            <div class="stat-card-value"><span id="stat-free-capacity">0</span><span style="font-size: 1rem; color: var(--text-muted)">%</span></div>
+            <div class="stat-card-trend"><i class="fa-solid fa-check-double"></i> <span id="stat-free-slots">0</span> slot(s) available</div>
           </div>
 
-          <!-- System Monitor Chart (Mock) -->
+          <!-- System Monitor Chart - real average node CPU sampled on every poll, not random -->
           <div class="card chart-card">
-            <div class="card-title"><i class="fa-solid fa-chart-area"></i> Global CPU/RAM Matrix</div>
-            <div class="system-graph" id="mock-graph">
-              <!-- JS will populate graph bars -->
+            <div class="card-title"><i class="fa-solid fa-chart-area"></i> Global CPU Load (live samples)</div>
+            <div class="system-graph" id="cpu-graph">
+              <!-- JS will populate with real sampled bars -->
             </div>
           </div>
 
@@ -1590,6 +1590,10 @@
     const MY_OWNER_TOKEN = getOwnerToken();
     console.log("Session authenticated. Token: " + MY_OWNER_TOKEN);
 
+    // Backend farklı bir origin/port'ta çalışıyorsa burayı değiştir, örn: 'http://localhost:10000'
+    // Aynı Express sunucusu hem bu HTML'i hem /api rotalarını sunuyorsa boş bırak.
+    const API_BASE = '';
+
     // Global State - starts completely empty, populated only from the real backend
     let state = {
       nodes: [],
@@ -1685,7 +1689,8 @@
        -------------------------------------------------------------------------- */
     async function fetchNodes() {
       try {
-        const res = await fetch('/api/nodes');
+        const res = await fetch(`${API_BASE}/api/nodes`);
+        if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
         const data = await res.json();
         if (data.success) {
           state.nodes = (data.nodes || []).map(n => ({
@@ -1694,30 +1699,60 @@
             maxBots: n.maxBots,
             cpuUsage: n.cpuUsage,
             ramUsage: n.ramUsage,
+            online: n.online === true,
             uptime: n.online ? '100.00%' : '0.00%'
           }));
+          return true;
         }
+        return false;
       } catch (err) {
         console.error('Node fetch failed:', err);
-        addLogEntry('error', "Node listesi backend'ten cekilemedi.");
+        addLogEntry('error', `Node listesi cekilemedi (/api/nodes): ${err.message}`);
+        return false;
       }
     }
 
     async function fetchBots() {
       try {
-        const res = await fetch('/api/bots');
+        const res = await fetch(`${API_BASE}/api/bots`);
+        if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
         const data = await res.json();
         if (data.success) {
           state.bots = data.bots || [];
+          return true;
         }
+        return false;
       } catch (err) {
         console.error('Bot fetch failed:', err);
-        addLogEntry('error', "Bot listesi backend'ten cekilemedi.");
+        addLogEntry('error', `Bot listesi cekilemedi (/api/bots): ${err.message}`);
+        return false;
       }
     }
 
+    // Gerçek zamanlı örnekleme geçmişi - grafik burada üretilen gerçek CPU değerlerinden çizilir, rastgele değil
+    state.cpuHistory = [];
+    const CPU_HISTORY_MAX_SAMPLES = 30;
+
     async function refreshData() {
-      await Promise.all([fetchNodes(), fetchBots()]);
+      const startedAt = performance.now();
+      const [nodesOk, botsOk] = await Promise.all([fetchNodes(), fetchBots()]);
+      const elapsedMs = Math.round(performance.now() - startedAt);
+
+      // Gerçek round-trip gecikmesi (backend'e gerçekten ulaşılabiliyorsa)
+      const pingEl = document.getElementById('global-ping');
+      if (nodesOk || botsOk) {
+        pingEl.innerText = `${elapsedMs}ms`;
+      } else {
+        pingEl.innerText = 'OFFLINE';
+      }
+
+      // Gerçek ortalama node CPU'sunu geçmişe ekle (backend'den gelen değerler)
+      if (state.nodes.length > 0) {
+        const avgCpu = state.nodes.reduce((acc, n) => acc + (n.cpuUsage || 0), 0) / state.nodes.length;
+        state.cpuHistory.push(Math.round(avgCpu));
+        if (state.cpuHistory.length > CPU_HISTORY_MAX_SAMPLES) state.cpuHistory.shift();
+      }
+
       updateUI();
     }
 
@@ -1735,11 +1770,16 @@
       submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> ALLOCATING RESOURCES...';
 
       try {
-        const res = await fetch('/api/create', {
+        const res = await fetch(`${API_BASE}/api/create`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, host, port, ownerToken: MY_OWNER_TOKEN })
         });
+
+        if (!res.ok && res.status !== 400 && res.status !== 403) {
+          throw new Error(`HTTP ${res.status} ${res.statusText}`);
+        }
+
         const data = await res.json();
 
         if (data.success) {
@@ -1755,8 +1795,8 @@
         }
       } catch (err) {
         console.error('Deploy request failed:', err);
-        showToast('error', 'Connection Error', "Backend'e ulasilamadi (/api/create).");
-        addLogEntry('error', 'API baglanti hatasi: /api/create');
+        showToast('error', 'Connection Error', `Backend'e ulasilamadi (${API_BASE}/api/create): ${err.message}`);
+        addLogEntry('error', `API baglanti hatasi: /api/create - ${err.message}`);
       }
 
       submitBtn.disabled = false;
@@ -1773,11 +1813,16 @@
       if(!confirm(`Are you sure you want to terminate instance '${username}'?`)) return;
 
       try {
-        const res = await fetch('/api/stop', {
+        const res = await fetch(`${API_BASE}/api/stop`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id: botId, ownerToken: MY_OWNER_TOKEN })
         });
+
+        if (!res.ok && res.status !== 400 && res.status !== 403 && res.status !== 404) {
+          throw new Error(`HTTP ${res.status} ${res.statusText}`);
+        }
+
         const data = await res.json();
 
         if (data.success) {
@@ -1796,7 +1841,7 @@
         }
       } catch (err) {
         console.error('Stop request failed:', err);
-        showToast('error', 'Connection Error', "Backend'e ulasilamadi (/api/stop).");
+        showToast('error', 'Connection Error', `Backend'e ulasilamadi (${API_BASE}/api/stop): ${err.message}`);
       }
     }
 
@@ -1861,11 +1906,36 @@
     function updateUI() {
       // 1. Global Headers (includes protected system bots, since they occupy real capacity)
       const totalBotsEverywhere = state.nodes.reduce((acc, n) => acc + getAllBotsForNode(n.id).length, 0);
+      const realSystemBotCount = state.bots.filter(b => b.isSystem === true).length;
+
       document.getElementById('global-nodes').innerText = state.nodes.length;
       document.getElementById('global-bots').innerText = totalBotsEverywhere;
       document.getElementById('dash-bot-count').innerText = totalBotsEverywhere;
+      document.getElementById('stat-system-bot-count').innerText = realSystemBotCount;
 
-      // 2. Render Node Grid
+      // 2. Dashboard stat cards - all computed from real state.nodes / state.bots, nothing invented
+      const totalCapacity = state.nodes.reduce((acc, n) => acc + (n.maxBots || 0), 0);
+      const avgCpu = state.nodes.length > 0
+        ? Math.round(state.nodes.reduce((acc, n) => acc + (n.cpuUsage || 0), 0) / state.nodes.length)
+        : 0;
+      const freeSlots = Math.max(totalCapacity - totalBotsEverywhere, 0);
+      const freeCapacityPct = totalCapacity > 0 ? Math.round((freeSlots / totalCapacity) * 100) : 0;
+
+      document.getElementById('stat-total-capacity').innerText = totalCapacity;
+      document.getElementById('stat-node-count').innerText = state.nodes.length;
+      document.getElementById('stat-avg-cpu').innerText = avgCpu;
+      document.getElementById('stat-free-capacity').innerText = freeCapacityPct;
+      document.getElementById('stat-free-slots').innerText = freeSlots;
+
+      const now = new Date();
+      document.getElementById('stat-last-sync').innerText =
+        now.getHours().toString().padStart(2, '0') + ':' +
+        now.getMinutes().toString().padStart(2, '0') + ':' +
+        now.getSeconds().toString().padStart(2, '0');
+
+      renderCpuGraph();
+
+      // 3. Render Node Grid
       const container = document.getElementById('nodes-container');
       container.innerHTML = state.nodes.map(node => {
         const nodeBots = getAllBotsForNode(node.id);
@@ -2000,50 +2070,26 @@
       termBody.scrollTop = termBody.scrollHeight;
     }
 
-    // Simulate random system events
-    setInterval(() => {
-      const events = [
-        { t: 'info', m: 'Garbage collection completed. Freed 450MB.' },
-        { t: 'info', m: 'Syncing tick rate with Host servers...' },
-        { t: 'success', m: 'LLM Model [GooberZeka] inference took 45ms.' },
-        { t: 'warn', m: 'Slight latency detected on Node Epsilon-Grid.' },
-        { t: 'info', m: 'Pathfinding matrix recalculated for 14 entities.' }
-      ];
-      if(Math.random() > 0.6) {
-        const ev = events[Math.floor(Math.random() * events.length)];
-        addLogEntry(ev.t, ev.m);
-        
-        // Randomly fluctuate ping
-        document.getElementById('global-ping').innerText = (10 + Math.floor(Math.random() * 8)) + 'ms';
-      }
-    }, 4500);
+    // Not: Rastgele/uydurma sistem olayları kaldırıldı. Aktivite akışı ve terminal
+    // yalnızca gerçek eylemlerle güncellenir: deploy, terminate, senkronizasyon hataları vb.
+    // (bkz. addLogEntry çağrıları: handleDeployBot, stopBot, refreshData, window.onload)
 
-    // Mock Dashboard Graph Initializer
-    const graphContainer = document.getElementById('mock-graph');
-    for(let i=0; i<30; i++) {
-      const bar = document.createElement('div');
-      bar.className = 'graph-bar';
-      const val = Math.floor(Math.random() * 60) + 10;
-      bar.style.height = val + '%';
-      bar.setAttribute('data-val', val);
-      graphContainer.appendChild(bar);
-    }
-    
-    // Animate Graph
-    setInterval(() => {
-      const bars = document.querySelectorAll('.graph-bar');
-      for(let i=0; i<bars.length - 1; i++) {
-        const nextVal = bars[i+1].getAttribute('data-val');
-        bars[i].style.height = nextVal + '%';
-        bars[i].setAttribute('data-val', nextVal);
+    // Global CPU grafiği - state.cpuHistory içindeki GERÇEK örneklenen değerlerden çizilir.
+    // Bu diziye her refreshData() çağrısında backend'den gelen node.cpuUsage ortalaması eklenir.
+    function renderCpuGraph() {
+      const graphContainer = document.getElementById('cpu-graph');
+      if (!graphContainer) return;
+
+      if (state.cpuHistory.length === 0) {
+        graphContainer.innerHTML = `<div style="width:100%; text-align:center; color: var(--text-dim); font-size: 0.8rem; align-self: center;">Henüz veri yok - backend'den ilk örnek bekleniyor...</div>`;
+        return;
       }
-      const lastBar = bars[bars.length-1];
-      const newVal = Math.floor(Math.random() * 40) + 30; // 30-70%
-      lastBar.style.height = newVal + '%';
-      lastBar.setAttribute('data-val', newVal);
-      // Node CPU/RAM values are no longer faked here - they come from the real
-      // backend poll in refreshData(), which runs on its own 3s interval.
-    }, 2000);
+
+      graphContainer.innerHTML = state.cpuHistory.map(val => {
+        const clamped = Math.max(0, Math.min(100, val));
+        return `<div class="graph-bar" style="height:${clamped}%;" title="${clamped}% avg CPU"></div>`;
+      }).join('');
+    }
 
     /* --------------------------------------------------------------------------
        G. NETWORK CANVAS ANIMATION (Background Effect)
@@ -2146,8 +2192,13 @@
       animateNetwork();
 
       refreshData().then(() => {
-        addLogEntry('info', 'System initialized. Connected to live backend (' + state.nodes.length + ' node(s)).');
-        showToast('success', 'System Ready', 'Connected to GooberCraft backend.');
+        if (state.nodes.length > 0) {
+          addLogEntry('info', `System initialized. Connected to live backend (${state.nodes.length} node(s)).`);
+          showToast('success', 'System Ready', 'Connected to GooberCraft backend.');
+        } else {
+          addLogEntry('error', 'Backend yanıt vermedi veya hiç node kayıtlı değil.');
+          showToast('error', 'Connection Error', `Backend'e ulasilamadi. /api/nodes ve /api/bots ${API_BASE || 'aynı origin üzerinden'} erişilebilir olmalı.`);
+        }
       });
 
       // Backend'den her 3 saniyede bir güncel node/bot listesini çek ve UI'ı senkronize et
