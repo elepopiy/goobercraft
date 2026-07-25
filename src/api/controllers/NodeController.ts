@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { NodeManager } from "../managers/NodeManager";
+import { NodeManager } from "../../managers/NodeManager";
 
 // Projendeki NodeManager örneğini buraya aktarabilirsin
 export class NodeController {

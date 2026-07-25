@@ -1,8 +1,16 @@
-import { Task } from "../types/Task";
+export interface TaskInfo {
+    id: string;
+    type: string;
+    status: string;
+    createdAt: number;
+    payload: unknown;
+}
 export declare class TaskManager {
-    private readonly queue;
-    push(task: Task): void;
-    pop(): Task | undefined;
-    size(): number;
+    private readonly tasks;
+    add(task: TaskInfo): void;
+    remove(id: string): boolean;
+    get(id: string): TaskInfo | undefined;
+    getAll(): TaskInfo[];
+    count(): number;
 }
 //# sourceMappingURL=TaskManager.d.ts.map

@@ -1,7 +1,11 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Bot = void 0;
 const BotCore_1 = require("./core/BotCore");
+const crypto_1 = __importDefault(require("crypto"));
 /**
  * GooberCraft ana Bot API sınıfı.
  *
@@ -15,17 +19,27 @@ const BotCore_1 = require("./core/BotCore");
  */
 class Bot {
     core;
+    id;
+    createdAt;
+    nodeId = null;
+    connected = false;
+    destroyed = false;
     constructor(options) {
+        this.id = crypto_1.default.randomUUID();
         this.core = new BotCore_1.BotCore(options);
+        this.createdAt = Date.now();
     }
     // ============================================================
     // LIFE CYCLE
     // ============================================================
     connect() {
         this.core.connect();
+        this.connected = true;
         return this;
     }
     end(reason) {
+        this.connected = false;
+        this.destroyed = true;
         this.core.disconnect(reason);
     }
     // ============================================================
@@ -232,6 +246,25 @@ class Bot {
     }
     listPlugins() {
         return this.core.plugins.list();
+    }
+    getId() {
+        return this.id;
+    }
+    getCreatedAt() {
+        return this.createdAt;
+    }
+    isConnected() {
+        return this.connected;
+    }
+    isDestroyed() {
+        return this.destroyed;
+    }
+    getNodeId() {
+        return this.nodeId;
+    }
+    setNodeId(id) {
+        this.nodeId = id;
+        return this;
     }
 }
 exports.Bot = Bot;

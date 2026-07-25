@@ -3,13 +3,22 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const http_1 = __importDefault(require("http"));
-const port = Number(process.env.PORT) || 3000;
-const server = http_1.default.createServer((req, res) => {
-    res.writeHead(200, { "Content-Type": "text/plain" });
-    res.end("GooberCraft Master Server is running!");
+const express_1 = __importDefault(require("express"));
+const cors_1 = __importDefault(require("cors"));
+const path_1 = __importDefault(require("path"));
+const routes_1 = __importDefault(require("./api/routes"));
+const app = (0, express_1.default)();
+app.use((0, cors_1.default)());
+app.use(express_1.default.json());
+// Public klasörünü statik dosya olarak sun
+app.use(express_1.default.static(path_1.default.join(__dirname, "../public")));
+app.use("/api", routes_1.default);
+// Kök dizinde Dashboard HTML'ini gönder
+app.get("/", (_, res) => {
+    res.sendFile(path_1.default.join(__dirname, "../public/index.html"));
 });
-server.listen(port, () => {
-    console.log(`GooberCraft Master Server listening on port ${port}`);
+const PORT = Number(process.env.PORT) || 3000;
+app.listen(PORT, () => {
+    console.log(`GooberCraft Master Server listening on http://localhost:${PORT}`);
 });
 //# sourceMappingURL=server.js.map

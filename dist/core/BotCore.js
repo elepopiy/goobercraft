@@ -11,6 +11,9 @@ const SpawnManager_1 = require("../managers/SpawnManager");
 const RespawnManager_1 = require("../managers/RespawnManager");
 const TeleportManager_1 = require("../managers/TeleportManager");
 const HealthManager_1 = require("../managers/HealthManager");
+const BotManager_1 = require("../managers/BotManager");
+const NodeManager_1 = require("../managers/NodeManager");
+const TaskManager_1 = require("../managers/TaskManager");
 const FoodManager_1 = require("../managers/FoodManager");
 const ExperienceManager_1 = require("../managers/ExperienceManager");
 const ChatManager_1 = require("../managers/ChatManager");
@@ -29,6 +32,10 @@ class BotCore {
     bus = new EventBus_1.EventBus();
     protocol;
     plugins = new PluginManager_1.PluginManager();
+    botManager = new BotManager_1.BotManager();
+    nodeManager = new NodeManager_1.NodeManager();
+    taskManager = new TaskManager_1.TaskManager();
+    startedAt = Date.now();
     keepAlive;
     login;
     spawnManager;
@@ -130,6 +137,18 @@ class BotCore {
         this.pathfinder.stop();
         this.physics.stop();
         this.bus.emit("end");
+    }
+    getUptime() {
+        return Date.now() - this.startedAt;
+    }
+    getBotManager() {
+        return this.botManager;
+    }
+    getNodeManager() {
+        return this.nodeManager;
+    }
+    getTaskManager() {
+        return this.taskManager;
     }
 }
 exports.BotCore = BotCore;

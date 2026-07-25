@@ -1,5 +1,6 @@
 export = Movements;
 declare class Movements {
+    constructor(bot: any);
     bot: any;
     canDig: boolean;
     digCost: number;
@@ -14,8 +15,8 @@ declare class Movements {
     allowSprinting: boolean;
     allowEntityDetection: boolean;
     entitiesToAvoid: Set<any>;
-    passableEntities: Set<string>;
-    interactableBlocks: Set<string>;
+    passableEntities: Set<any>;
+    interactableBlocks: Set<any>;
     blocksCantBreak: Set<any>;
     blocksToAvoid: Set<any>;
     liquids: Set<any>;
@@ -34,7 +35,6 @@ declare class Movements {
     maxDropDown: number;
     infiniteLiquidDropdownDistance: boolean;
     entityIntersections: {};
-    constructor(bot: any);
     exclusionPlace(block: any): number;
     exclusionStep(block: any): number;
     exclusionBreak(block: any): number;
@@ -55,21 +55,21 @@ declare class Movements {
      * @param {number} dz Z axis offset
      * @returns {number} Number of entities intersecting block
      */
-    getNumEntitiesAt(pos: import('vec3').Vec3, dx: number, dy: number, dz: number): number;
+    getNumEntitiesAt(pos: import("vec3").Vec3, dx: number, dy: number, dz: number): number;
     getBlock(pos: any, dx: any, dy: any, dz: any): any;
     /**
      * Takes into account if the block is within a break exclusion area.
      * @param {import('prismarine-block').Block} block
      * @returns
      */
-    safeToBreak(block: import('prismarine-block').Block): 0 | boolean;
+    safeToBreak(block: import("prismarine-block").Block): boolean | 0;
     /**
      * Takes into account if the block is within the stepExclusionAreas. And returns 100 if a block to be broken is within break exclusion areas.
      * @param {import('prismarine-block').Block} block block
      * @param {[]} toBreak
      * @returns {number}
      */
-    safeOrBreak(block: import('prismarine-block').Block, toBreak: []): number;
+    safeOrBreak(block: import("prismarine-block").Block, toBreak: []): number;
     getMoveJumpUp(node: any, dir: any, neighbors: any): void;
     getMoveForward(node: any, dir: any, neighbors: any): void;
     getMoveDiagonal(node: any, dir: any, neighbors: any): void;

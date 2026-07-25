@@ -1,12 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.taskManager = exports.botManager = exports.nodeManager = void 0;
 exports.createBot = createBot;
 const Bot_1 = require("./Bot");
-// Yeni managerlar
-const BotManager_1 = require("./managers/BotManager");
-const NodeManager_1 = require("./managers/NodeManager");
-const TaskManager_1 = require("./managers/TaskManager");
+const managers_1 = require("./managers");
 const DEFAULTS = {
     port: 25565,
     auth: "offline",
@@ -15,10 +11,6 @@ const DEFAULTS = {
     checkTimeoutInterval: 30000,
     respawnOnDeath: true,
 };
-// Global managerlar (şimdilik sadece oluşturuluyor)
-exports.nodeManager = new NodeManager_1.NodeManager();
-exports.botManager = new BotManager_1.BotManager();
-exports.taskManager = new TaskManager_1.TaskManager();
 function resolveOptions(options) {
     if (!options.host)
         throw new Error("GooberCraft: 'host' zorunludur.");
@@ -31,9 +23,12 @@ function resolveOptions(options) {
         port: options.port ?? DEFAULTS.port,
         auth: options.auth ?? DEFAULTS.auth,
         version: options.version ?? DEFAULTS.version,
-        viewDistance: options.viewDistance ?? DEFAULTS.viewDistance,
-        checkTimeoutInterval: options.checkTimeoutInterval ?? DEFAULTS.checkTimeoutInterval,
-        respawnOnDeath: options.respawnOnDeath ?? DEFAULTS.respawnOnDeath,
+        viewDistance: options.viewDistance ??
+            DEFAULTS.viewDistance,
+        checkTimeoutInterval: options.checkTimeoutInterval ??
+            DEFAULTS.checkTimeoutInterval,
+        respawnOnDeath: options.respawnOnDeath ??
+            DEFAULTS.respawnOnDeath,
     };
 }
 /**
@@ -41,11 +36,17 @@ function resolveOptions(options) {
  */
 function createBot(options) {
     const resolved = resolveOptions(options);
-    // Gelecekte node seçimi burada yapılacak.
-    // const node = nodeManager.getAvailableNode();
+    // Gelecekte en uygun worker burada seçilecek.
+    const node = managers_1.manager.nodes.getAvailableNode();
     const bot = new Bot_1.Bot(resolved);
-    // Gelecekte dashboard için kayıt edilecek.
-    // botManager.add(...)
+    // Şimdilik local olarak kayıt ediyoruz.
+    managers_1.manager.bots.add({
+        id: bot.getId(),
+        username: resolved.username,
+        nodeId: node?.id ?? "local",
+        online: true,
+        createdAt: bot.getCreatedAt()
+    });
     bot.connect();
     return bot;
 }

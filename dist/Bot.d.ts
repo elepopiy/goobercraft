@@ -18,6 +18,11 @@ import type { Goal } from "./pathfinder/types";
  */
 export declare class Bot {
     private readonly core;
+    private readonly id;
+    private readonly createdAt;
+    private nodeId;
+    private connected;
+    private destroyed;
     constructor(options: ResolvedBotOptions);
     connect(): this;
     end(reason?: string): void;
@@ -76,5 +81,11 @@ export declare class Bot {
     loadPlugin(plugin: GooberPlugin | PluginFactory): void;
     unloadPlugin(name: string): boolean;
     listPlugins(): string[];
+    getId(): string;
+    getCreatedAt(): number;
+    isConnected(): boolean;
+    isDestroyed(): boolean;
+    getNodeId(): string | null;
+    setNodeId(id: string): this;
 }
 //# sourceMappingURL=Bot.d.ts.map

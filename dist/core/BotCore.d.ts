@@ -9,6 +9,9 @@ import { RespawnManager } from "../managers/RespawnManager";
 import { TeleportManager } from "../managers/TeleportManager";
 import { HealthManager } from "../managers/HealthManager";
 import { PathfinderAPI } from "../pathfinder/types";
+import { BotManager } from "../managers/BotManager";
+import { NodeManager } from "../managers/NodeManager";
+import { TaskManager } from "../managers/TaskManager";
 import { FoodManager } from "../managers/FoodManager";
 import { ExperienceManager } from "../managers/ExperienceManager";
 import { ChatManager } from "../managers/ChatManager";
@@ -25,6 +28,10 @@ export declare class BotCore {
     readonly bus: EventBus;
     readonly protocol: ProtocolManager;
     readonly plugins: PluginManager;
+    private readonly botManager;
+    private readonly nodeManager;
+    private readonly taskManager;
+    private readonly startedAt;
     readonly keepAlive: KeepAliveManager;
     readonly login: LoginManager;
     readonly spawnManager: SpawnManager;
@@ -47,5 +54,9 @@ export declare class BotCore {
     connect(): void;
     disconnect(reason?: string): void;
     private handleDisconnect;
+    getUptime(): number;
+    getBotManager(): BotManager;
+    getNodeManager(): NodeManager;
+    getTaskManager(): TaskManager;
 }
 //# sourceMappingURL=BotCore.d.ts.map

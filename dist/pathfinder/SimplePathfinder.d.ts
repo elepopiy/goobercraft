@@ -1,6 +1,2 @@
-declare const _exports: {
-    findPath: any;
-    findPathDetailed: any;
-};
-export = _exports;
+export { findPath, findPathDetailed };
 //# sourceMappingURL=SimplePathfinder.d.ts.map

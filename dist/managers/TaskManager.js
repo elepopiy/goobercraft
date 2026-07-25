@@ -2,15 +2,21 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TaskManager = void 0;
 class TaskManager {
-    queue = [];
-    push(task) {
-        this.queue.push(task);
+    tasks = new Map();
+    add(task) {
+        this.tasks.set(task.id, task);
     }
-    pop() {
-        return this.queue.shift();
+    remove(id) {
+        return this.tasks.delete(id);
     }
-    size() {
-        return this.queue.length;
+    get(id) {
+        return this.tasks.get(id);
+    }
+    getAll() {
+        return [...this.tasks.values()];
+    }
+    count() {
+        return this.tasks.size;
     }
 }
 exports.TaskManager = TaskManager;

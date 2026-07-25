@@ -1,8 +1,5 @@
-declare const _exports: {
-    Pathfinder: typeof Pathfinder;
-};
-export = _exports;
-declare class Pathfinder {
+export class Pathfinder {
+    constructor(bot: any, world: any);
     bot: any;
     world: any;
     goal: any;
@@ -10,7 +7,6 @@ declare class Pathfinder {
     _moving: boolean;
     currentIndex: number;
     followTimer: NodeJS.Timeout | null;
-    constructor(bot: any, world: any);
     /**
      * Mineflayer uyumlu
      * bot.pathfinder.setGoal(goal)
