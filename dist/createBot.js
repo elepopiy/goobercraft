@@ -34,20 +34,56 @@ function resolveOptions(options) {
 /**
  * GooberCraft Bot Factory
  */
-function createBot(options) {
+async function createBot(options) {
     const resolved = resolveOptions(options);
-    // Gelecekte en uygun worker burada seçilecek.
+    // 1. En uygun Node'u bul
     const node = managers_1.manager.nodes.getAvailableNode();
     const bot = new Bot_1.Bot(resolved);
-    // Şimdilik local olarak kayıt ediyoruz.
+    if (node) {
+        bot.setNodeId(node.id);
+        // Node üzerindeki bot sayacını artır
+        node.currentBots = (node.currentBots || 0) + 1;
+        // Node nesnesinde url tanımı opsiyonel veya custom olabilir
+        const nodeUrl = node.url;
+        // 2. Uzak Node ise Webhook/HTTP ile başlat
+        if (node.id !== "local" && nodeUrl) {
+            try {
+                const response = await fetch(`${nodeUrl}/api/bots/spawn`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        id: bot.getId(),
+                        options: resolved
+                    })
+                });
+                if (!response.ok) {
+                    throw new Error(`Node (${node.id}) yanıt vermedi: ${response.statusText}`);
+                }
+            }
+            catch (error) {
+                console.error(`[GooberCraft] Node ile iletişim kurulamadı, local olarak başlatılıyor:`, error);
+                bot.connect();
+            }
+        }
+        else {
+            bot.connect();
+        }
+    }
+    else {
+        // Müsait Node yoksa yerelde çalıştır
+        bot.setNodeId("local");
+        bot.connect();
+    }
+    // Guaranteed string
+    const assignedNodeId = bot.getNodeId() || "local";
+    // 3. Master state kaydı
     managers_1.manager.bots.add({
         id: bot.getId(),
         username: resolved.username,
-        nodeId: node?.id ?? "local",
+        nodeId: assignedNodeId,
         online: true,
         createdAt: bot.getCreatedAt()
     });
-    bot.connect();
     return bot;
 }
 //# sourceMappingURL=createBot.js.map

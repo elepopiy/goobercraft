@@ -69,7 +69,6 @@
 
     .stat-badge span { color: var(--text); font-weight: 600; }
 
-    /* BOT EKLE BUTONU */
     .btn-add-bot {
       background: linear-gradient(135deg, var(--accent), #a855f7);
       color: white;
@@ -128,12 +127,43 @@
     .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #818cf8); border-radius: 4px; }
 
     .bot-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 1.2rem; min-height: 30px; }
-    .bot-chip { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.05); padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; color: var(--text-muted); }
-    .bot-chip.active { color: var(--text); border-color: rgba(99, 102, 241, 0.3); }
+    
+    .bot-chip {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+    
+    .bot-chip.active {
+      color: var(--text);
+      border-color: rgba(99, 102, 241, 0.4);
+      background: rgba(99, 102, 241, 0.15);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
 
-    .empty-state { text-align: center; grid-column: 1 / -1; padding: 4rem; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--card-border); color: var(--text-muted); }
+    .bot-chip.active:hover {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #fca5a5;
+    }
 
-    /* MODAL AÇILIR PENCERE */
+    .empty-state {
+      text-align: center;
+      grid-column: 1 / -1;
+      padding: 4rem;
+      background: var(--card-bg);
+      border-radius: 16px;
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+    }
+
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(8px);
@@ -164,6 +194,7 @@
       padding: 0.8rem; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 0.5rem;
     }
     .btn-submit:hover { background: var(--accent-hover); }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
   </style>
 </head>
 <body>
@@ -182,7 +213,6 @@
         <div class="stat-badge">Toplam Node: <span id="total-nodes">0</span></div>
         <div class="stat-badge">Aktif Botlar: <span id="total-bots">0</span></div>
       </div>
-      <!-- İŞTE BURADA! -->
       <button class="btn-add-bot" onclick="openModal()">➕ Bot Ekle</button>
     </div>
   </header>
@@ -211,7 +241,7 @@
           <label>Port</label>
           <input type="number" id="botPort" value="25565" required>
         </div>
-        <button type="submit" class="btn-submit">En Boş Sunucuya Atarak Başlat 🚀</button>
+        <button type="submit" id="submitBtn" class="btn-submit">En Boş Sunucuya Atarak Başlat 🚀</button>
       </form>
     </div>
   </div>
@@ -222,9 +252,13 @@
 
     async function handleAddBot(e) {
       e.preventDefault();
+      const submitBtn = document.getElementById('submitBtn');
       const username = document.getElementById('botUsername').value;
       const host = document.getElementById('botHost').value;
       const port = Number(document.getElementById('botPort').value);
+
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'Bot Bağlanıyor... ⏳';
 
       try {
         const res = await fetch('/api/bots/create', {
@@ -237,12 +271,38 @@
         if (data.success) {
           alert('✅ ' + data.message);
           closeModal();
+          document.getElementById('addBotForm').reset();
+          document.getElementById('botPort').value = '25565';
           fetchDashboardData();
         } else {
           alert('❌ Hata: ' + (data.message || 'Bot eklenemedi.'));
         }
       } catch (err) {
         alert('❌ Sunucuya bağlanırken hata oluştu.');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = 'En Boş Sunucuya Atarak Başlat 🚀';
+      }
+    }
+
+    async function stopBot(botId, username) {
+      if (!confirm(`'${username}' botunu durdurmak istediğinize emin misiniz?`)) return;
+
+      try {
+        const res = await fetch('/api/bots/stop', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: botId })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          fetchDashboardData();
+        } else {
+          alert('❌ Bot durdurulamadı: ' + (data.message || 'Bilinmeyen hata'));
+        }
+      } catch (err) {
+        alert('❌ Sunucuyla iletişim hatası.');
       }
     }
 
@@ -279,7 +339,11 @@
           else if (percentage >= 80) fillStyle = "background: var(--yellow);";
 
           const botChipsHtml = nodeBots.length > 0 
-            ? nodeBots.map(b => `<span class="bot-chip active">🤖 ${b.username}</span>`).join('')
+            ? nodeBots.map(b => `
+                <span class="bot-chip active" title="Durdurmak için tıkla" onclick="stopBot('${b.id}', '${b.username}')">
+                  🤖 ${b.username} ✕
+                </span>
+              `).join('')
             : `<span class="bot-chip">Bot Yok</span>`;
 
           return `
