@@ -2,7 +2,7 @@
 
 const { performance } = require("perf_hooks");
 
-const Heap = require("./heap.js");
+const Heap = require("./Heap.js");
 
 class PathNode {
   constructor () {

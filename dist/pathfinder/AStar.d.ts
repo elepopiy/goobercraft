@@ -7,7 +7,7 @@ declare class AStar {
     timeout: any;
     tickTimeout: number;
     closedDataSet: Set<any>;
-    openHeap: any;
+    openHeap: Heap;
     openDataMap: Map<any, any>;
     bestNode: PathNode;
     maxCost: number;
@@ -23,6 +23,7 @@ declare class AStar {
      */
     compute(): any;
 }
+import Heap = require("./Heap.js");
 declare class PathNode {
     data: any;
     g: number;
