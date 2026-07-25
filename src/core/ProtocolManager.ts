@@ -3,14 +3,10 @@ import { ResolvedBotOptions } from "../utils/types";
 import { EventBus } from "./EventBus";
 import { Logger } from "../utils/Logger";
 import { getMcData, buildGroundFields, MovementFlags } from "../utils/MovementPacketCompat";
+import { manager } from "../managers"; // 👈 MANAGER IMPORT'U EKLENDİ
 
 /**
  * ProtocolManager, minecraft-protocol'un düşük seviye Client'ını yönetir.
- * Handshake, login, configuration, compression ve encryption tamamen
- * minecraft-protocol tarafından otomatik yürütülür (bu kütüphanenin
- * sorumluluğu değildir) — GooberCraft'ın işi bu client'tan gelen
- * paketleri kendi EventBus'ına aktarmak ve giden paketleri tek bir
- * merkezi yerden yazmaktır.
  */
 export class ProtocolManager {
   public client!: Client;
@@ -24,6 +20,17 @@ export class ProtocolManager {
   }
 
   connect(): void {
+    // 🚀 CANLI KAYIT KANCASI (HOOK):
+    // Bot ne zaman bağlanmaya çalışsa, Master Node yoksa anında oluşturulur ve aktif kılınır!
+    if (manager && manager.nodes) {
+      manager.nodes.registerNode({
+        id: "master-node-1",
+        name: "GooberCraft Master Node",
+        url: "http://localhost:10000",
+        maxBots: 10
+      });
+    }
+
     Logger.info("ProtocolManager", `${this.options.host}:${this.options.port} adresine bağlanılıyor...`);
 
     this.client = createClient({
@@ -45,8 +52,6 @@ export class ProtocolManager {
     client.on("kick_disconnect", (data: any) => this.bus.emit("_raw_kick", data));
     client.on("state", (newState: string) => this.bus.emit("_raw_state", newState));
 
-    // Her paket, ham haliyle EventBus üzerinden yayınlanır. Manager'lar
-    // ilgilendikleri paket adına abone olur (packet:<name>).
     client.on("packet", (data: any, meta: { name: string; state: string }) => {
       this.bus.emit(`packet:${meta.name}`, data, meta);
       this.bus.emit("packet", data, meta);
@@ -62,27 +67,10 @@ export class ProtocolManager {
     }
   }
 
-  /**
-   * Bağlı olunan sunucunun (negotiated) protokol sürümünü döndürür.
-   * Henüz bağlanılmadıysa veya sürüm bilinmiyorsa undefined döner.
-   */
   getVersion(): string | undefined {
     return (this.client as any)?.version;
   }
 
-  /**
-   * Serverbound "Move Player" ailesi paketleri (position, look,
-   * position_look, vehicle_move vb.) için onGround/horizontalCollision
-   * alanlarını sürüme uygun şekilde oluşturup gönderir.
-   *
-   * Minecraft 1.21.2 ile bu paketlerdeki "on ground" alanı düz bir
-   * boolean olmaktan çıkıp bir bitfield'a ("flags") taşındı. Alan adını
-   * sabit kodlamak yerine gerçek protodef şeması çalışma zamanında
-   * incelenir (bkz. MovementPacketCompat) — böylece hem eski hem yeni
-   * sürümlerde doğru paket üretilir. Şema çözülemezse veya yazma
-   * başarısız olursa istisna burada yutulur: hareket paketi o an
-   * gönderilemeyebilir, ama bağlantı asla bu yüzden kopmaz.
-   */
   writeMovement(
     name: string,
     protodefTypeName: string,
