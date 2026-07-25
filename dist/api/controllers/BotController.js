@@ -1,14 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BotController = void 0;
-const createBot_1 = require("../../createBot"); // createBot fabrika fonksiyonunun yolu
+const createBot_1 = require("../../createBot");
+const managers_1 = require("../../managers"); // Doğru import en üstte mevcut!
 class BotController {
     static getBots(req, res) {
-        // Master Manager üzerindeki bot listesini döndürür
-        const { manager } = require("../managers");
+        // En üstte import edilen manager kullanılıyor (require temizlendi)
         res.json({
             success: true,
-            bots: manager.bots.getAll()
+            bots: managers_1.manager.bots.getAll()
         });
     }
     static async createBot(req, res) {
@@ -21,7 +21,6 @@ class BotController {
         }
         try {
             // Gerçek GooberCraft Bot'unu oluştur ve başlat.
-            // Bu fonksiyon otomatik olarak en uygun Node'u seçecek ve ona bağlayacak.
             const bot = await (0, createBot_1.createBot)({
                 username: username || `Goob_${Math.floor(Math.random() * 1000)}`,
                 host: host,
@@ -50,11 +49,10 @@ class BotController {
     }
     static stopBot(req, res) {
         const { id } = req.body;
-        const { manager } = require("../managers");
-        const botState = manager.bots.get(id);
+        // En üstte import edilen manager kullanılıyor (require temizlendi)
+        const botState = managers_1.manager.bots.get(id);
         if (botState) {
-            // Eğer bot nesnesine erişiminiz varsa bot.end() çağrılabilir
-            manager.bots.remove(id);
+            managers_1.manager.bots.remove(id);
             return res.json({
                 success: true,
                 message: "Bot başarıyla durduruldu."
