@@ -93,7 +93,7 @@ export class BotCore {
     );
 
     // =====================================================
-    // PATHFINDER BAĞLANTISI (Self referansı ile 'this' koruması)
+    // PATHFINDER BAĞLANTISI ('self' ile 'this' bağlamı korunuyor)
     // =====================================================
     const self = this;
     this.pathfinder = new Pathfinder(
@@ -150,21 +150,14 @@ export class BotCore {
     this.bus.emit("end");
   }
 
-  /**
-   * Çökme riskini tamamen önlemek için güvenli durdurma metodu
-   */
   private safeStop(): void {
     try {
       this.pathfinder?.stop?.();
-    } catch (e) {
-      // Pathfinder henüz ilklendirilmediyse hatayı yut
-    }
+    } catch (e) {}
 
     try {
       this.physics?.stop?.();
-    } catch (e) {
-      // Physics durdurulurken oluşabilecek hataları engelle
-    }
+    } catch (e) {}
   }
 
   public getUptime(): number {

@@ -7,6 +7,7 @@ const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const path_1 = __importDefault(require("path"));
 const routes_1 = __importDefault(require("./api/routes"));
+const managers_1 = require("./managers"); // Global manager importu
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
@@ -19,8 +20,16 @@ app.use("/api", routes_1.default);
 app.get("/", (_, res) => {
     res.sendFile(path_1.default.join(publicPath, "index.html"));
 });
-const PORT = Number(process.env.PORT) || 3000;
+const PORT = Number(process.env.PORT) || 10000;
 app.listen(PORT, () => {
     console.log(`GooberCraft Master listening on port ${PORT}`);
+    // Sunucu ayağa kalktığında varsayılan Master Node'u sisteme kaydet
+    managers_1.manager.nodes.registerNode({
+        id: "master-node-1",
+        name: "Master Node (Render)",
+        url: process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`,
+        maxBots: 10
+    });
+    console.log("[GooberCraft:Master] Varsayılan Node sisteme başarıyla kaydedildi.");
 });
 //# sourceMappingURL=server.js.map
