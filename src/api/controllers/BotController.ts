@@ -1,13 +1,12 @@
 import { Request, Response } from "express";
 import { NodeController } from "./NodeController";
-import { createBot } from "../../createBot"; // createBot fabrika fonksiyonunun yolu
+import { createBot } from "../../createBot";
+import { manager } from "../../managers"; // Doğru import en üstte mevcut!
 
 export class BotController {
     
     public static getBots(req: Request, res: Response) {
-        // Master Manager üzerindeki bot listesini döndürür
-        const { manager } = require("../managers");
-        
+        // En üstte import edilen manager kullanılıyor (require temizlendi)
         res.json({
             success: true,
             bots: manager.bots.getAll()
@@ -26,7 +25,6 @@ export class BotController {
 
         try {
             // Gerçek GooberCraft Bot'unu oluştur ve başlat.
-            // Bu fonksiyon otomatik olarak en uygun Node'u seçecek ve ona bağlayacak.
             const bot = await createBot({
                 username: username || `Goob_${Math.floor(Math.random() * 1000)}`,
                 host: host,
@@ -57,11 +55,10 @@ export class BotController {
 
     public static stopBot(req: Request, res: Response) {
         const { id } = req.body;
-        const { manager } = require("../managers");
 
+        // En üstte import edilen manager kullanılıyor (require temizlendi)
         const botState = manager.bots.get(id);
         if (botState) {
-            // Eğer bot nesnesine erişiminiz varsa bot.end() çağrılabilir
             manager.bots.remove(id);
             return res.json({
                 success: true,
