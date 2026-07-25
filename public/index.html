@@ -54,7 +54,9 @@
       box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
     }
 
-    .stats-summary { display: flex; gap: 1.5rem; }
+    .header-actions { display: flex; align-items: center; gap: 1rem; }
+
+    .stats-summary { display: flex; gap: 1rem; }
 
     .stat-badge {
       background: var(--card-bg);
@@ -67,6 +69,27 @@
     }
 
     .stat-badge span { color: var(--text); font-weight: 600; }
+
+    /* BOT EKLE BUTONU */
+    .btn-add-bot {
+      background: linear-gradient(135deg, var(--accent), #a855f7);
+      color: white;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+      transition: transform 0.2s, background 0.2s;
+    }
+
+    .btn-add-bot:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(99, 102, 241, 0.5);
+    }
 
     .container {
       max-width: 1200px;
@@ -99,17 +122,9 @@
       padding: 4px 10px; border-radius: 20px; background: rgba(16, 185, 129, 0.1); color: var(--green);
     }
 
-    .status-indicator.offline {
-      background: rgba(239, 68, 68, 0.1); color: var(--red);
-    }
-
-    .status-dot {
-      width: 8px; height: 8px; border-radius: 50%; background-color: var(--green); box-shadow: 0 0 8px var(--green);
-    }
-
-    .status-indicator.offline .status-dot {
-      background-color: var(--red); box-shadow: 0 0 8px var(--red);
-    }
+    .status-indicator.offline { background: rgba(239, 68, 68, 0.1); color: var(--red); }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background-color: var(--green); box-shadow: 0 0 8px var(--green); }
+    .status-indicator.offline .status-dot { background-color: var(--red); box-shadow: 0 0 8px var(--red); }
 
     .bot-capacity { margin-bottom: 1rem; }
     .capacity-info { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; }
@@ -122,6 +137,63 @@
     .bot-chip.active { color: var(--text); border-color: rgba(99, 102, 241, 0.3); }
 
     .empty-state { text-align: center; grid-column: 1 / -1; padding: 4rem; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--card-border); color: var(--text-muted); }
+
+    /* MODAL (AÇILIR PENCERE) */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal-overlay.show { display: flex; }
+
+    .modal {
+      background: #1e293b;
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-header {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;
+    }
+
+    .modal-title { font-size: 1.2rem; font-weight: 700; }
+    .btn-close { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
+
+    .form-group { margin-bottom: 1.2rem; }
+    .form-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; }
+    .form-group input {
+      width: 100%;
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      color: white;
+      outline: none;
+    }
+    .form-group input:focus { border-color: var(--accent); }
+
+    .btn-submit {
+      width: 100%;
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 0.8rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 0.5rem;
+    }
+    .btn-submit:hover { background: var(--accent-hover); }
   </style>
 </head>
 <body>
@@ -135,9 +207,12 @@
       </div>
     </div>
 
-    <div class="stats-summary">
-      <div class="stat-badge">Toplam Node: <span id="total-nodes">0</span></div>
-      <div class="stat-badge">Aktif Botlar: <span id="total-bots">0</span></div>
+    <div class="header-actions">
+      <div class="stats-summary">
+        <div class="stat-badge">Toplam Node: <span id="total-nodes">0</span></div>
+        <div class="stat-badge">Aktif Botlar: <span id="total-bots">0</span></div>
+      </div>
+      <button class="btn-add-bot" onclick="openModal()">➕ Bot Ekle</button>
     </div>
   </header>
 
@@ -145,7 +220,61 @@
     <div class="empty-state">Yükleniyor veya henüz aktif Node/Server bulunamadı...</div>
   </div>
 
+  <!-- BOT EKLE MODAL -->
+  <div class="modal-overlay" id="addBotModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">🤖 Yeni Bot Ekle</div>
+        <button class="btn-close" onclick="closeModal()">&times;</button>
+      </div>
+      <form id="addBotForm" onsubmit="handleAddBot(event)">
+        <div class="form-group">
+          <label>Bot Kullanıcı Adı (Username)</label>
+          <input type="text" id="botUsername" placeholder="Örn: Goob_Bot" required>
+        </div>
+        <div class="form-group">
+          <label>Sunucu IP / Host</label>
+          <input type="text" id="botHost" placeholder="Örn: play.hypixel.net" required>
+        </div>
+        <div class="form-group">
+          <label>Port</label>
+          <input type="number" id="botPort" value="25565" required>
+        </div>
+        <button type="submit" class="btn-submit">En Boş Sunucuya Bağla 🚀</button>
+      </form>
+    </div>
+  </div>
+
   <script>
+    function openModal() { document.getElementById('addBotModal').classList.add('show'); }
+    function closeModal() { document.getElementById('addBotModal').classList.remove('show'); }
+
+    async function handleAddBot(e) {
+      e.preventDefault();
+      const username = document.getElementById('botUsername').value;
+      const host = document.getElementById('botHost').value;
+      const port = Number(document.getElementById('botPort').value);
+
+      try {
+        const res = await fetch('/api/bots/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, host, port })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          alert('✅ ' + data.message);
+          closeModal();
+          fetchDashboardData();
+        } else {
+          alert('❌ Hata: ' + (data.message || 'Bot eklenemedi.'));
+        }
+      } catch (err) {
+        alert('❌ Sunucuya bağlanırken hata oluştu.');
+      }
+    }
+
     async function fetchDashboardData() {
       try {
         const [nodesRes, botsRes] = await Promise.all([
@@ -169,7 +298,7 @@
         }
 
         container.innerHTML = nodes.map(node => {
-          const maxBots = node.maxBots || 10; // Her Node için max 10 bot sınırı
+          const maxBots = node.maxBots || 10;
           const nodeBots = bots.filter(b => b.nodeId === node.id);
           const currentBots = nodeBots.length || node.currentBots || 0;
           const percentage = Math.min((currentBots / maxBots) * 100, 100);
@@ -211,7 +340,6 @@
       }
     }
 
-    // Her 3 saniyede bir verileri canlı güncelle
     setInterval(fetchDashboardData, 3000);
     fetchDashboardData();
   </script>
