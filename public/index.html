@@ -7,155 +7,672 @@
   <meta http-equiv="Expires" content="0" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GooberCraft Master - Quantum Data Center</title>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,500;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
   
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;0,800;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
   <style>
+    /* ==========================================================================
+       1. ROOT VARIABLES & THEME CONFIGURATION
+       ========================================================================== */
     :root {
-      --bg: #030712;
-      --card-bg: rgba(15, 23, 42, 0.75);
-      --card-border: rgba(51, 65, 85, 0.5);
-      --rack-border: rgba(99, 102, 241, 0.3);
-      --accent: #6366f1;
-      --accent-glow: rgba(99, 102, 241, 0.4);
-      --cyan: #06b6d4;
-      --cyan-glow: rgba(6, 182, 212, 0.4);
-      --green: #10b981;
-      --green-glow: rgba(16, 185, 129, 0.4);
-      --yellow: #f59e0b;
-      --red: #f43f5e;
-      --red-glow: rgba(244, 63, 94, 0.4);
-      --text: #f8fafc;
+      /* Core Colors */
+      --bg-base: #02040a;
+      --bg-surface: #0f172a;
+      --bg-surface-hover: #1e293b;
+      --bg-panel: rgba(15, 23, 42, 0.65);
+      
+      /* Accents */
+      --accent-primary: #6366f1;
+      --accent-primary-hover: #4f46e5;
+      --accent-primary-glow: rgba(99, 102, 241, 0.4);
+      --accent-secondary: #8b5cf6;
+      
+      /* Semantic Colors */
+      --color-success: #10b981;
+      --color-success-glow: rgba(16, 185, 129, 0.3);
+      --color-success-bg: rgba(16, 185, 129, 0.1);
+      
+      --color-info: #0ea5e9;
+      --color-info-glow: rgba(14, 165, 233, 0.3);
+      --color-info-bg: rgba(14, 165, 233, 0.1);
+      
+      --color-warning: #f59e0b;
+      --color-warning-glow: rgba(245, 158, 11, 0.3);
+      
+      --color-danger: #ef4444;
+      --color-danger-glow: rgba(239, 68, 68, 0.3);
+      --color-danger-bg: rgba(239, 68, 68, 0.1);
+      
+      --color-cyan: #06b6d4;
+      --color-cyan-glow: rgba(6, 182, 212, 0.4);
+      
+      /* Typography */
+      --text-main: #f8fafc;
       --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      
+      /* Borders & Layout */
+      --border-light: rgba(255, 255, 255, 0.08);
+      --border-focus: rgba(99, 102, 241, 0.5);
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      
+      /* Shadows */
+      --shadow-sm: 0 4px 6px rgba(0,0,0,0.3);
+      --shadow-md: 0 10px 15px rgba(0,0,0,0.5);
+      --shadow-lg: 0 20px 40px rgba(0,0,0,0.7);
+      --shadow-neon: 0 0 20px var(--accent-primary-glow);
+      
+      /* Z-Index Layers */
+      --z-canvas: 0;
+      --z-content: 10;
+      --z-sidebar: 20;
+      --z-header: 30;
+      --z-modal: 100;
+      --z-toast: 200;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+    /* ==========================================================================
+       2. RESET & BASE STYLES
+       ========================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      font-size: 16px;
+      scroll-behavior: smooth;
+    }
 
     body {
-      background-color: var(--bg);
-      color: var(--text);
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      line-height: 1.6;
       min-height: 100vh;
       overflow-x: hidden;
-      position: relative;
+      display: flex;
     }
 
-    /* BİRBİRİNE BAĞLI CANLI SUNUCU AĞI CANVAS */
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-base);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--accent-primary);
+    }
+
+    /* Selection */
+    ::selection {
+      background: var(--accent-primary-glow);
+      color: #fff;
+    }
+
+    /* Typography Utilities */
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    .text-gradient {
+      background: linear-gradient(135deg, var(--color-cyan), var(--accent-primary), var(--accent-secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    h1, h2, h3, h4, h5, h6 { font-weight: 700; line-height: 1.2; }
+    a { color: var(--color-info); text-decoration: none; transition: all 0.3s ease; }
+    a:hover { color: var(--color-cyan); }
+    ul { list-style: none; }
+
+    /* ==========================================================================
+       3. BACKGROUND CANVAS
+       ========================================================================== */
     #network-canvas {
       position: fixed;
       top: 0; left: 0;
       width: 100vw; height: 100vh;
-      z-index: 0;
+      z-index: var(--z-canvas);
       pointer-events: none;
-      opacity: 0.6;
+      opacity: 0.4;
+      background: radial-gradient(circle at 50% 50%, #0a0f1d 0%, var(--bg-base) 100%);
     }
 
-    .app-wrapper {
-      position: relative;
-      z-index: 1;
-      padding: 2.5rem;
-      max-width: 1400px;
-      margin: 0 auto;
-    }
-
-    header {
+    /* ==========================================================================
+       4. LAYOUT: SIDEBAR
+       ========================================================================== */
+    .sidebar {
+      width: 280px;
+      background: rgba(3, 7, 18, 0.85);
+      border-right: 1px solid var(--border-light);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      height: 100vh;
+      position: fixed;
+      left: 0; top: 0;
+      z-index: var(--z-sidebar);
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 1.5rem;
-      margin-bottom: 3rem;
-      padding-bottom: 1.5rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      background: rgba(3, 7, 18, 0.6);
-      backdrop-filter: blur(12px);
-      border-radius: 16px;
-      padding: 1.25rem 2rem;
-      border: 1px solid rgba(255, 255, 255, 0.05);
+      flex-direction: column;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .brand { display: flex; align-items: center; gap: 16px; }
+    .sidebar-header {
+      padding: 2rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .brand-logo-container {
+      position: relative;
+    }
 
     .brand-logo {
-      width: 52px; height: 52px;
-      background: radial-gradient(circle at 30% 30%, #1e1b4b, #090d16);
-      border: 1px solid var(--accent);
-      border-radius: 12px;
-      display: flex; align-items: center; justify-content: center;
+      width: 48px; height: 48px;
+      background: radial-gradient(circle at top left, #1e1b4b, #090d16);
+      border: 1px solid var(--accent-primary);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-family: 'JetBrains Mono', monospace;
-      font-weight: 700; font-size: 1.5rem;
-      color: var(--cyan);
-      box-shadow: 0 0 20px var(--accent-glow);
+      font-weight: 800;
+      font-size: 1.2rem;
+      color: var(--color-cyan);
+      box-shadow: 0 0 15px var(--accent-primary-glow);
+      position: relative;
+      overflow: hidden;
     }
 
-    .brand-title { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px; }
-    .brand-subtitle { font-size: 0.8rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+    .brand-logo::after {
+      content: '';
+      position: absolute;
+      top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      background: linear-gradient(transparent, rgba(255,255,255,0.1), transparent);
+      transform: rotate(45deg);
+      animation: logoShine 4s infinite;
+    }
 
-    .header-actions { display: flex; align-items: center; gap: 1rem; }
-    .stats-summary { display: flex; gap: 0.75rem; }
+    .brand-text h2 {
+      font-size: 1.1rem;
+      letter-spacing: -0.5px;
+      margin-bottom: 2px;
+    }
 
-    .stat-badge {
-      background: rgba(15, 23, 42, 0.8);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      padding: 0.6rem 1.2rem;
-      border-radius: 10px;
+    .brand-text span {
+      font-size: 0.75rem;
+      color: var(--color-success);
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .brand-text span::before {
+      content: '';
+      display: block;
+      width: 6px; height: 6px;
+      background: var(--color-success);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--color-success);
+      animation: pulsePulse 2s infinite;
+    }
+
+    .nav-menu {
+      flex: 1;
+      padding: 1.5rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      overflow-y: auto;
+    }
+
+    .nav-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-dim);
+      margin: 1rem 0 0.5rem 1rem;
+      font-weight: 700;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.85rem 1rem;
+      border-radius: var(--radius-sm);
       color: var(--text-muted);
-      display: flex; align-items: center; gap: 10px;
-      backdrop-filter: blur(8px);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+      font-weight: 500;
     }
-    .stat-badge span { color: var(--cyan); font-weight: 700; font-size: 1.1rem; }
 
-    .btn-add-bot {
-      background: linear-gradient(135deg, var(--accent), #4338ca);
-      color: white; border: 1px solid rgba(255, 255, 255, 0.2);
-      padding: 0.75rem 1.5rem; border-radius: 10px;
-      font-weight: 700; cursor: pointer;
-      display: flex; align-items: center; gap: 8px;
-      box-shadow: 0 0 25px var(--accent-glow);
+    .nav-item i {
+      font-size: 1.1rem;
+      width: 24px;
+      text-align: center;
+      transition: all 0.2s ease;
+    }
+
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-main);
+    }
+
+    .nav-item:hover i {
+      color: var(--color-cyan);
+      transform: scale(1.1);
+    }
+
+    .nav-item.active {
+      background: linear-gradient(90deg, rgba(99, 102, 241, 0.15) 0%, transparent 100%);
+      color: var(--color-cyan);
+      border-left: 3px solid var(--accent-primary);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      font-weight: 700;
+    }
+
+    .sidebar-footer {
+      padding: 1.5rem;
+      border-top: 1px solid var(--border-light);
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ==========================================================================
+       5. LAYOUT: MAIN CONTENT AREA
+       ========================================================================== */
+    .main-content {
+      margin-left: 280px;
+      width: calc(100% - 280px);
+      min-height: 100vh;
+      position: relative;
+      z-index: var(--z-content);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* HEADER */
+    .top-header {
+      height: 80px;
+      padding: 0 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-light);
+      background: rgba(2, 4, 10, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: var(--z-header);
+    }
+
+    .header-breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .header-breadcrumb .current {
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .global-stats {
+      display: flex;
+      gap: 1rem;
+      background: var(--bg-surface);
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-light);
+    }
+
+    .stat-mini {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    
+    .stat-mini span {
+      color: var(--text-main);
+      font-weight: 700;
+    }
+
+    .stat-mini i.fa-server { color: var(--accent-primary); }
+    .stat-mini i.fa-robot { color: var(--color-cyan); }
+    .stat-mini i.fa-bolt { color: var(--color-warning); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 0.6rem 1.25rem;
+      border-radius: var(--radius-sm);
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 0 15px var(--accent-primary-glow);
       transition: all 0.3s ease;
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.85rem;
     }
-    .btn-add-bot:hover {
+
+    .btn-primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 0 35px rgba(99, 102, 241, 0.7);
+      box-shadow: 0 0 25px rgba(99, 102, 241, 0.6);
     }
 
-    /* GRID CONTAINER */
-    .container {
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      cursor: pointer;
+      padding: 0.5rem;
+      border-radius: var(--radius-sm);
+      transition: background 0.2s;
+    }
+    .user-profile:hover {
+      background: rgba(255,255,255,0.05);
+    }
+    .avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--accent-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: white;
+      border: 2px solid var(--color-cyan);
+    }
+
+    /* VIEW CONTAINER */
+    .view-container {
+      flex: 1;
+      padding: 2.5rem;
+      position: relative;
+    }
+
+    .view-section {
+      display: none;
+      animation: fadeIn 0.4s ease forwards;
+    }
+
+    .view-section.active {
+      display: block;
+    }
+
+    /* ==========================================================================
+       6. DASHBOARD COMPONENTS
+       ========================================================================== */
+    .dashboard-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      grid-template-columns: repeat(12, 1fr);
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: var(--shadow-md);
+      transition: border-color 0.3s;
+    }
+    
+    .card:hover {
+      border-color: rgba(255,255,255,0.15);
+    }
+
+    /* Overview Cards */
+    .stat-card {
+      grid-column: span 3;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 3px;
+      background: var(--accent-primary);
+    }
+
+    .stat-card.cyan::before { background: var(--color-cyan); }
+    .stat-card.success::before { background: var(--color-success); }
+    .stat-card.warning::before { background: var(--color-warning); }
+
+    .stat-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    
+    .stat-card-icon {
+      width: 40px; height: 40px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+    
+    .stat-card.primary .stat-card-icon { background: rgba(99, 102, 241, 0.1); color: var(--accent-primary); }
+    .stat-card.cyan .stat-card-icon { background: var(--color-info-bg); color: var(--color-cyan); }
+    .stat-card.success .stat-card-icon { background: var(--color-success-bg); color: var(--color-success); }
+    .stat-card.warning .stat-card-icon { background: rgba(245, 158, 11, 0.1); color: var(--color-warning); }
+
+    .stat-card-value {
+      font-size: 2.5rem;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-main);
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    .stat-card-trend {
+      font-size: 0.85rem;
+      color: var(--color-success);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Wide Cards (Charts simulation) */
+    .chart-card {
+      grid-column: span 8;
+      min-height: 350px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .activity-card {
+      grid-column: span 4;
+      min-height: 350px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .card-title i { color: var(--accent-primary); }
+
+    /* Fake System Monitor Graph */
+    .system-graph {
+      flex: 1;
+      display: flex;
+      align-items: flex-end;
+      gap: 4px;
+      padding-top: 2rem;
+      position: relative;
+    }
+    
+    .graph-bar {
+      flex: 1;
+      background: linear-gradient(to top, var(--accent-primary-glow), var(--color-cyan));
+      border-radius: 4px 4px 0 0;
+      min-height: 5%;
+      transition: height 0.5s ease;
+      position: relative;
+    }
+    .graph-bar:hover::after {
+      content: attr(data-val) '%';
+      position: absolute;
+      top: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg-surface);
+      color: white;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-family: 'JetBrains Mono';
+      border: 1px solid var(--border-light);
+      pointer-events: none;
+    }
+
+    /* Activity List */
+    .activity-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      overflow-y: auto;
+      max-height: 280px;
+      padding-right: 5px;
+    }
+
+    .activity-item {
+      display: flex;
+      gap: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .activity-indicator {
+      margin-top: 4px;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+    }
+    .activity-indicator.success { background: var(--color-success); box-shadow: 0 0 8px var(--color-success); }
+    .activity-indicator.warning { background: var(--color-warning); box-shadow: 0 0 8px var(--color-warning); }
+    .activity-indicator.danger { background: var(--color-danger); box-shadow: 0 0 8px var(--color-danger); }
+
+    .activity-content { flex: 1; }
+    .activity-text { font-size: 0.9rem; color: var(--text-main); margin-bottom: 4px; }
+    .activity-text strong { color: var(--color-cyan); }
+    .activity-time { font-size: 0.75rem; color: var(--text-muted); font-family: 'JetBrains Mono'; }
+
+    /* ==========================================================================
+       7. SERVER RACKS VIEW (NODES)
+       ========================================================================== */
+    .view-header {
+      margin-bottom: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .view-header h2 {
+      font-size: 1.8rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .view-header p {
+      color: var(--text-muted);
+    }
+
+    .nodes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
       gap: 2rem;
     }
 
-    /* OPENAI STYLE SERVER RACK CARD */
     .server-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 16px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
       padding: 1.5rem;
       position: relative;
       overflow: hidden;
       backdrop-filter: blur(16px);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      box-shadow: var(--shadow-md);
       transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
       cursor: pointer;
-      display: flex; flex-direction: column; justify-content: space-between;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
 
     .server-card:hover {
       transform: translateY(-6px) scale(1.01);
-      border-color: var(--accent);
-      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8), 0 0 30px var(--accent-glow);
+      border-color: var(--accent-primary);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 20px var(--accent-primary-glow);
     }
 
     .server-card::before {
       content: ''; position: absolute;
       top: 0; left: 0; right: 0; height: 3px;
-      background: linear-gradient(90deg, var(--cyan), var(--accent), var(--green));
+      background: linear-gradient(90deg, var(--color-cyan), var(--accent-primary), var(--color-success));
     }
 
-    .server-header {
+    .server-card-header {
       display: flex; justify-content: space-between; align-items: center;
       margin-bottom: 1.25rem; padding-bottom: 0.85rem;
       border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -163,54 +680,50 @@
 
     .server-title {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 1.05rem; font-weight: 700; color: var(--text);
+      font-size: 1.1rem; font-weight: 800; color: var(--text-main);
       display: flex; align-items: center; gap: 10px;
     }
 
     .click-hint {
       font-size: 0.7rem;
-      color: var(--cyan);
+      color: var(--color-cyan);
       background: rgba(6, 182, 212, 0.1);
-      padding: 2px 8px;
+      padding: 3px 10px;
       border-radius: 20px;
       border: 1px solid rgba(6, 182, 212, 0.3);
+      font-weight: 700;
+      letter-spacing: 0.5px;
     }
 
-    /* LEDS */
+    /* LEDs */
     .led-group { display: flex; gap: 8px; align-items: center; }
-    .led {
-      width: 10px; height: 10px; border-radius: 50%;
-      background: #1e293b;
-    }
-    .led.green { background: var(--green); box-shadow: 0 0 10px var(--green); animation: pulse 2s infinite; }
-    .led.blue { background: var(--cyan); box-shadow: 0 0 10px var(--cyan); animation: pulse 1.5s infinite; }
-    .led.red { background: var(--red); box-shadow: 0 0 10px var(--red); }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.4; transform: scale(0.85); }
-    }
+    .led { width: 10px; height: 10px; border-radius: 50%; background: #1e293b; }
+    .led.green { background: var(--color-success); box-shadow: 0 0 10px var(--color-success); animation: pulse 2s infinite; }
+    .led.blue { background: var(--color-cyan); box-shadow: 0 0 10px var(--color-cyan); animation: pulse 1.5s infinite; }
+    .led.red { background: var(--color-danger); box-shadow: 0 0 10px var(--color-danger); }
 
     .server-metrics {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 0.75rem;
       margin-bottom: 1.25rem;
-      background: rgba(3, 7, 18, 0.7);
-      padding: 0.85rem;
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.04);
+      background: rgba(0, 0, 0, 0.3);
+      padding: 1rem;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(255, 255, 255, 0.03);
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       color: var(--text-muted);
     }
 
-    .metric-val { color: var(--text); font-weight: 700; float: right; }
+    .metric-item { display: flex; justify-content: space-between; align-items: center; }
+    .metric-val { color: var(--text-main); font-weight: 700; }
+    .metric-val.alert { color: var(--color-warning); }
 
-    .bot-capacity { margin-bottom: 1rem; }
+    .bot-capacity { margin-bottom: 1.2rem; }
     .capacity-info {
       display: flex; justify-content: space-between;
-      font-size: 0.8rem; color: var(--text-muted);
+      font-size: 0.85rem; color: var(--text-muted);
       margin-bottom: 0.5rem; font-family: 'JetBrains Mono', monospace;
     }
 
@@ -219,21 +732,36 @@
       background: rgba(15, 23, 42, 0.9);
       border-radius: 4px; overflow: hidden;
       border: 1px solid rgba(255, 255, 255, 0.05);
+      position: relative;
     }
-    .progress-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+    
+    .progress-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .progress-fill::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      animation: shimmer 2s infinite;
+    }
 
-    /* BOT LIST CHIPS */
     .bot-list {
       display: flex; flex-wrap: wrap; gap: 8px;
-      min-height: 44px; align-items: center;
-      background: rgba(0, 0, 0, 0.4); padding: 8px; border-radius: 10px;
+      min-height: 50px; align-items: center;
+      background: rgba(0, 0, 0, 0.4); padding: 10px; border-radius: var(--radius-md);
       border: 1px solid rgba(255, 255, 255, 0.03);
     }
 
     .bot-chip {
       background: #0f172a;
-      border: 1px solid var(--card-border);
-      padding: 5px 10px; border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 6px 12px; border-radius: 8px;
       font-size: 0.75rem; font-family: 'JetBrains Mono', monospace;
       color: var(--text-muted);
       display: inline-flex; align-items: center; gap: 8px;
@@ -241,293 +769,1061 @@
     }
     
     .bot-chip.mine {
-      color: var(--cyan);
+      color: var(--color-cyan);
       border-color: rgba(6, 182, 212, 0.5);
       background: rgba(6, 182, 212, 0.12);
     }
 
-    .bot-chip .btn-stop {
-      color: var(--red);
+    .btn-stop {
+      color: var(--color-danger);
       cursor: pointer;
       font-weight: bold;
       padding: 2px 6px;
       border-radius: 4px;
-      background: rgba(244, 63, 94, 0.15);
-      border: 1px solid rgba(244, 63, 94, 0.3);
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
       transition: all 0.2s;
+      margin-left: 4px;
     }
 
-    .bot-chip .btn-stop:hover {
-      background: var(--red);
+    .btn-stop:hover {
+      background: var(--color-danger);
       color: white;
-      box-shadow: 0 0 10px var(--red-glow);
+      box-shadow: 0 0 10px var(--color-danger-glow);
     }
 
-    /* MODAL VE RACK INSPECTOR */
-    .modal-overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(3, 7, 18, 0.85); backdrop-filter: blur(12px);
-      display: none; align-items: center; justify-content: center; z-index: 1000;
-      animation: fadeIn 0.2s ease;
-    }
-    .modal-overlay.show { display: flex; }
-
-    .modal {
-      background: #0b0f19; border: 1px solid rgba(99, 102, 241, 0.4);
-      border-radius: 20px; padding: 2.2rem; width: 100%; max-width: 520px;
-      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 40px var(--accent-glow);
+    /* ==========================================================================
+       8. TERMINAL / LOGS VIEW
+       ========================================================================== */
+    .terminal-container {
+      background: #000;
+      border: 1px solid var(--border-focus);
+      border-radius: var(--radius-md);
+      height: 70vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow-lg), inset 0 0 20px rgba(99,102,241,0.1);
+      overflow: hidden;
       position: relative;
     }
 
-    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-    .modal-title { font-size: 1.25rem; font-weight: 800; font-family: 'JetBrains Mono', monospace; color: var(--cyan); }
-    .btn-close { background: none; border: none; color: var(--text-muted); font-size: 1.8rem; cursor: pointer; }
-    .btn-close:hover { color: white; }
-
-    .form-group { margin-bottom: 1.2rem; }
-    .form-group label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem; font-family: 'JetBrains Mono', monospace; }
-    .form-group input {
-      width: 100%; background: #030712; border: 1px solid var(--card-border);
-      padding: 0.85rem 1rem; border-radius: 10px; color: white; outline: none;
-      font-family: 'JetBrains Mono', monospace; font-size: 0.9rem;
+    .terminal-header {
+      background: #1e1e1e;
+      padding: 10px 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid #333;
     }
-    .form-group input:focus { border-color: var(--cyan); box-shadow: 0 0 15px var(--cyan-glow); }
+
+    .terminal-dots { display: flex; gap: 6px; }
+    .term-dot { width: 12px; height: 12px; border-radius: 50%; }
+    .term-dot.red { background: #ff5f56; }
+    .term-dot.yellow { background: #ffbd2e; }
+    .term-dot.green { background: #27c93f; }
+
+    .terminal-title {
+      font-family: 'JetBrains Mono';
+      color: #aaa;
+      font-size: 0.85rem;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .terminal-body {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: #33ff00;
+      text-shadow: 0 0 2px rgba(51, 255, 0, 0.4);
+    }
+
+    .log-line {
+      margin-bottom: 4px;
+      word-break: break-all;
+    }
+
+    .log-time { color: #888; margin-right: 10px; }
+    .log-type.info { color: #0ea5e9; }
+    .log-type.warn { color: #f59e0b; }
+    .log-type.error { color: #ef4444; }
+    .log-type.success { color: #10b981; }
+    
+    .cursor-blink {
+      display: inline-block;
+      width: 8px; height: 15px;
+      background: #33ff00;
+      animation: blink 1s step-end infinite;
+      vertical-align: text-bottom;
+      margin-left: 4px;
+    }
+
+    /* ==========================================================================
+       9. ABOUT SECTION (HAKKINDA)
+       ========================================================================== */
+    .about-container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .about-hero {
+      text-align: center;
+      padding: 4rem 2rem;
+      background: linear-gradient(180deg, rgba(99, 102, 241, 0.1) 0%, transparent 100%);
+      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+      border: 1px solid var(--border-light);
+      border-bottom: none;
+      margin-bottom: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .about-hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 50%; transform: translateX(-50%);
+      width: 60%; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--color-cyan), var(--accent-primary), transparent);
+    }
+
+    .about-hero h1 {
+      font-size: 3rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+      letter-spacing: -1px;
+    }
+
+    .about-hero p {
+      font-size: 1.2rem;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .about-content {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 3rem;
+      backdrop-filter: blur(12px);
+    }
+
+    .about-section { margin-bottom: 3rem; }
+    .about-section:last-child { margin-bottom: 0; }
+
+    .about-section h2 {
+      font-size: 1.8rem;
+      color: var(--color-cyan);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      padding-bottom: 0.5rem;
+    }
+
+    .about-section p {
+      font-size: 1.05rem;
+      color: var(--text-main);
+      margin-bottom: 1.2rem;
+      line-height: 1.8;
+    }
+
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .tech-card {
+      background: rgba(0,0,0,0.4);
+      border: 1px solid rgba(255,255,255,0.05);
+      padding: 1.5rem;
+      border-radius: var(--radius-md);
+      transition: transform 0.3s;
+    }
+    
+    .tech-card:hover {
+      transform: translateY(-5px);
+      border-color: var(--accent-primary);
+    }
+
+    .tech-card i {
+      font-size: 2rem;
+      color: var(--accent-primary);
+      margin-bottom: 1rem;
+    }
+
+    .tech-card h4 {
+      font-size: 1.2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .tech-card p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin: 0;
+    }
+
+    blockquote {
+      border-left: 4px solid var(--color-cyan);
+      background: rgba(6, 182, 212, 0.05);
+      padding: 1.5rem;
+      margin: 2rem 0;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      font-style: italic;
+      color: var(--text-muted);
+    }
+
+    /* ==========================================================================
+       10. MODALS
+       ========================================================================== */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(2, 4, 10, 0.85); backdrop-filter: blur(8px);
+      display: none; align-items: center; justify-content: center;
+      z-index: var(--z-modal);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+      opacity: 1;
+    }
+
+    .modal {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-focus);
+      border-radius: var(--radius-xl);
+      padding: 2.5rem; width: 100%; max-width: 550px;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.5), 0 0 30px rgba(99, 102, 241, 0.15);
+      transform: scale(0.95) translateY(20px);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+    }
+
+    .modal-overlay.show .modal {
+      transform: scale(1) translateY(0);
+    }
+
+    .modal-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .modal-title {
+      font-size: 1.4rem; font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-main);
+      display: flex; align-items: center; gap: 10px;
+    }
+    
+    .modal-title i { color: var(--color-cyan); }
+
+    .btn-close {
+      background: rgba(255,255,255,0.05);
+      border: none;
+      color: var(--text-muted);
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-close:hover {
+      background: var(--color-danger);
+      color: white;
+      transform: rotate(90deg);
+    }
+
+    .form-group { margin-bottom: 1.5rem; }
+    .form-group label {
+      display: block; font-size: 0.85rem; color: var(--text-muted);
+      margin-bottom: 0.5rem; font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+    }
+    .form-group input {
+      width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border-light);
+      padding: 1rem 1.2rem; border-radius: var(--radius-md); color: white;
+      outline: none; font-family: 'JetBrains Mono', monospace; font-size: 1rem;
+      transition: all 0.3s;
+    }
+    .form-group input:focus {
+      border-color: var(--color-cyan);
+      box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.15);
+      background: rgba(0,0,0,0.5);
+    }
+    
+    .form-text { font-size: 0.75rem; color: var(--text-dim); margin-top: 6px; display: block; }
 
     .btn-submit {
-      width: 100%; background: linear-gradient(135deg, var(--accent), #4338ca); color: white; border: none;
-      padding: 1rem; border-radius: 10px; font-weight: 700; cursor: pointer; margin-top: 0.5rem;
-      font-family: 'JetBrains Mono', monospace; font-size: 0.9rem;
-      box-shadow: 0 0 20px var(--accent-glow);
+      width: 100%;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      color: white; border: none;
+      padding: 1.2rem; border-radius: var(--radius-md); font-weight: 800;
+      cursor: pointer; margin-top: 1rem;
+      font-family: 'JetBrains Mono', monospace; font-size: 1rem;
+      box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+      transition: all 0.3s;
+      display: flex; justify-content: center; align-items: center; gap: 10px;
+    }
+    
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 30px rgba(99, 102, 241, 0.5);
     }
 
-    /* NODE INSPECTOR DETAY LİSTESİ */
+    .btn-submit:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Inspector Specific Styles */
+    .inspector-header-details {
+      background: rgba(0,0,0,0.3);
+      padding: 1.5rem;
+      border-radius: var(--radius-md);
+      margin-bottom: 1.5rem;
+      border: 1px solid rgba(255,255,255,0.05);
+      font-family: 'JetBrains Mono';
+    }
+    
+    .inspector-row {
+      display: flex; justify-content: space-between; margin-bottom: 10px;
+      font-size: 0.9rem;
+    }
+    .inspector-row:last-child { margin-bottom: 0; }
+
+    .inspector-bot-list {
+      max-height: 300px;
+      overflow-y: auto;
+      padding-right: 5px;
+    }
+
     .inspector-bot-item {
       display: flex; justify-content: space-between; align-items: center;
-      background: rgba(15, 23, 42, 0.8);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      padding: 0.85rem 1rem;
-      border-radius: 10px;
-      margin-bottom: 0.6rem;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 1rem 1.2rem;
+      border-radius: var(--radius-sm);
+      margin-bottom: 0.8rem;
       font-family: 'JetBrains Mono', monospace;
+      transition: background 0.2s;
+    }
+    
+    .inspector-bot-item:hover {
+      background: rgba(15, 23, 42, 0.9);
+      border-color: rgba(255,255,255,0.1);
     }
 
-    @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    /* ==========================================================================
+       11. TOAST NOTIFICATIONS
+       ========================================================================== */
+    .toast-container {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      z-index: var(--z-toast);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      pointer-events: none;
+    }
+
+    .toast {
+      background: var(--bg-surface);
+      border-left: 4px solid var(--accent-primary);
+      padding: 1rem 1.5rem;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      min-width: 300px;
+      transform: translateX(120%);
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      pointer-events: auto;
+    }
+
+    .toast.show {
+      transform: translateX(0);
+    }
+
+    .toast.success { border-left-color: var(--color-success); }
+    .toast.error { border-left-color: var(--color-danger); }
+    .toast.info { border-left-color: var(--color-info); }
+
+    .toast-icon { font-size: 1.5rem; }
+    .toast.success .toast-icon { color: var(--color-success); }
+    .toast.error .toast-icon { color: var(--color-danger); }
+    .toast.info .toast-icon { color: var(--color-info); }
+
+    .toast-content h4 { font-size: 0.9rem; margin-bottom: 2px; }
+    .toast-content p { font-size: 0.8rem; color: var(--text-muted); }
+
+    /* ==========================================================================
+       12. ANIMATIONS
+       ========================================================================== */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+    
+    @keyframes pulsePulse {
+      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+      70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    @keyframes logoShine {
+      0% { transform: translateX(-100%) rotate(45deg); }
+      20%, 100% { transform: translateX(200%) rotate(45deg); }
+    }
+
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+    
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+    
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .dashboard-grid { display: flex; flex-direction: column; }
+    }
+
   </style>
 </head>
 <body>
 
-  <!-- CANLI BAĞLANTILI SUNUCU Mimarisi (CANVAS) -->
+  <!-- BACKGROUND CANVAS -->
   <canvas id="network-canvas"></canvas>
 
-  <div class="app-wrapper">
-    <header>
-      <div class="brand">
-        <div class="brand-logo">OA</div>
-        <div>
-          <h1 class="brand-title">GooberCraft DataCenter</h1>
-          <p class="brand-subtitle">Quantum Server Racks & Bot Cluster HUD</p>
-        </div>
+  <!-- SIDEBAR NAVIGATION -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand-logo-container">
+        <div class="brand-logo">GC</div>
+      </div>
+      <div class="brand-text">
+        <h2 class="text-gradient">GooberCraft</h2>
+        <span>QUANTUM ACTIVE</span>
+      </div>
+    </div>
+
+    <div class="nav-menu">
+      <div class="nav-label">Main Menu</div>
+      <div class="nav-item active" data-target="view-dashboard" onclick="switchView('view-dashboard')">
+        <i class="fa-solid fa-chart-pie"></i>
+        <span>Dashboard</span>
+      </div>
+      <div class="nav-item" data-target="view-nodes" onclick="switchView('view-nodes')">
+        <i class="fa-solid fa-server"></i>
+        <span>Server Racks</span>
+      </div>
+      <div class="nav-item" data-target="view-terminal" onclick="switchView('view-terminal')">
+        <i class="fa-solid fa-terminal"></i>
+        <span>Live Console</span>
       </div>
 
+      <div class="nav-label">System Data</div>
+      <div class="nav-item" data-target="view-about" onclick="switchView('view-about')">
+        <i class="fa-solid fa-book-journal-whills"></i>
+        <span>Architecture / About</span>
+      </div>
+      <div class="nav-item" onclick="showToast('info', 'Settings Locked', 'System config is locked by admin.')">
+        <i class="fa-solid fa-gear"></i>
+        <span>Configuration</span>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      GC-Master Panel v4.0.2<br>
+      Connected via WSS // TR-IST
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT WRAPPER -->
+  <main class="main-content">
+    
+    <!-- TOP HEADER -->
+    <header class="top-header">
+      <div class="header-breadcrumb">
+        <i class="fa-solid fa-house"></i> / <span class="current" id="breadcrumb-text">Dashboard</span>
+      </div>
+      
       <div class="header-actions">
-        <div class="stats-summary">
-          <div class="stat-badge">RACK NODES: <span id="total-nodes">0</span></div>
-          <div class="stat-badge">RUNNING BOTS: <span id="total-bots">0</span></div>
+        <div class="global-stats">
+          <div class="stat-mini">
+            <i class="fa-solid fa-server"></i> <span id="global-nodes">0</span> Nodes
+          </div>
+          <div class="stat-mini">
+            <i class="fa-solid fa-robot"></i> <span id="global-bots">0</span> Bots
+          </div>
+          <div class="stat-mini">
+            <i class="fa-solid fa-bolt"></i> <span id="global-ping">12ms</span> Ping
+          </div>
         </div>
-        <button class="btn-add-bot" onclick="openModal()">+ DEPLOY BOT</button>
+        
+        <button class="btn-primary" onclick="openDeployModal()">
+          <i class="fa-solid fa-rocket"></i> DEPLOY INSTANCE
+        </button>
+        
+        <div class="user-profile" onclick="showToast('info', 'Profile', 'Goober Admin Account')">
+          <div class="avatar">G</div>
+        </div>
       </div>
     </header>
 
-    <div class="container" id="server-container">
-      <div style="grid-column: 1/-1; text-align: center; padding: 4rem; color: var(--text-muted); font-family: 'JetBrains Mono';">
-        ⚡ DataCenter Kümeleri Senkronize Ediliyor...
-      </div>
-    </div>
-  </div>
+    <!-- CONTENT AREA -->
+    <div class="view-container">
+      
+      <!-- =========================================
+           VIEW: DASHBOARD
+           ========================================= -->
+      <section id="view-dashboard" class="view-section active">
+        <div class="view-header">
+          <div>
+            <h2>Quantum Operations Center</h2>
+            <p>Real-time analytics and cluster performance overview.</p>
+          </div>
+        </div>
 
-  <!-- BOT DEPLOYMENT MODAL -->
-  <div class="modal-overlay" id="addBotModal">
+        <div class="dashboard-grid">
+          <!-- Stat Card 1 -->
+          <div class="card stat-card primary">
+            <div class="stat-card-header">
+              <span>TOTAL INVOCATIONS</span>
+              <div class="stat-card-icon"><i class="fa-solid fa-microchip"></i></div>
+            </div>
+            <div class="stat-card-value">24,592 <span style="font-size: 1rem; color: var(--text-muted)">ops/s</span></div>
+            <div class="stat-card-trend"><i class="fa-solid fa-arrow-trend-up"></i> +14.5% from last hour</div>
+          </div>
+          
+          <!-- Stat Card 2 -->
+          <div class="card stat-card cyan">
+            <div class="stat-card-header">
+              <span>ACTIVE BOT SESSIONS</span>
+              <div class="stat-card-icon"><i class="fa-solid fa-robot"></i></div>
+            </div>
+            <div class="stat-card-value" id="dash-bot-count">0</div>
+            <div class="stat-card-trend"><i class="fa-solid fa-arrow-trend-up"></i> Stable allocation</div>
+          </div>
+
+          <!-- Stat Card 3 -->
+          <div class="card stat-card warning">
+            <div class="stat-card-header">
+              <span>NETWORK LOAD</span>
+              <div class="stat-card-icon"><i class="fa-solid fa-network-wired"></i></div>
+            </div>
+            <div class="stat-card-value">42.8 <span style="font-size: 1rem; color: var(--text-muted)">TB/m</span></div>
+            <div class="stat-card-trend" style="color: var(--color-warning)"><i class="fa-solid fa-minus"></i> Approaching threshold</div>
+          </div>
+
+          <!-- Stat Card 4 -->
+          <div class="card stat-card success">
+            <div class="stat-card-header">
+              <span>SYSTEM HEALTH</span>
+              <div class="stat-card-icon"><i class="fa-solid fa-heart-pulse"></i></div>
+            </div>
+            <div class="stat-card-value">99.99%</div>
+            <div class="stat-card-trend"><i class="fa-solid fa-check-double"></i> All clusters nominal</div>
+          </div>
+
+          <!-- System Monitor Chart (Mock) -->
+          <div class="card chart-card">
+            <div class="card-title"><i class="fa-solid fa-chart-area"></i> Global CPU/RAM Matrix</div>
+            <div class="system-graph" id="mock-graph">
+              <!-- JS will populate graph bars -->
+            </div>
+          </div>
+
+          <!-- Recent Activity -->
+          <div class="card activity-card">
+            <div class="card-title"><i class="fa-solid fa-list-ul"></i> Neural Activity Log</div>
+            <div class="activity-list" id="activity-feed">
+              <!-- JS will populate activities -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================
+           VIEW: SERVER RACKS (NODES)
+           ========================================= -->
+      <section id="view-nodes" class="view-section">
+        <div class="view-header">
+          <div>
+            <h2>Quantum Server Racks</h2>
+            <p>Physical and virtual node topology. Click any rack to inspect contained bot instances.</p>
+          </div>
+        </div>
+        
+        <div class="nodes-grid" id="nodes-container">
+          <!-- Dynamic Content from JS -->
+          <div style="grid-column: 1/-1; text-align: center; padding: 4rem; color: var(--text-muted); font-family: 'JetBrains Mono';">
+            <i class="fa-solid fa-circle-notch fa-spin fa-3x" style="color: var(--color-cyan); margin-bottom: 1rem;"></i><br>
+            Initializing Quantum Clusters...
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================
+           VIEW: TERMINAL
+           ========================================= -->
+      <section id="view-terminal" class="view-section">
+        <div class="view-header">
+          <div>
+            <h2>Live System Console</h2>
+            <p>Raw output from Goober Engine and Mineflayer microservices.</p>
+          </div>
+        </div>
+
+        <div class="terminal-container">
+          <div class="terminal-header">
+            <div class="terminal-dots">
+              <div class="term-dot red"></div>
+              <div class="term-dot yellow"></div>
+              <div class="term-dot green"></div>
+            </div>
+            <div class="terminal-title">root@goober-datacenter:~# tail -f /var/log/quantum.log</div>
+          </div>
+          <div class="terminal-body" id="terminal-body">
+            <!-- Terminal Output -->
+            <div class="log-line"><span class="log-time">[SYSTEM]</span><span class="log-type info"> INFO:</span> Establishing WSS connection to quantum clusters...</div>
+            <div class="log-line"><span class="log-time">[SYSTEM]</span><span class="log-type success"> SUCCESS:</span> Connected to GooberMaster Socket.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================
+           VIEW: ABOUT / LORE (HAKKINDA)
+           ========================================= -->
+      <section id="view-about" class="view-section">
+        <div class="about-container">
+          
+          <div class="about-hero">
+            <h1>GooberCraft Quantum Architecture</h1>
+            <p>Sınırları zorlayan yapay zeka entegrasyonlu, otonom oyun-içi varlık yönetim sistemi.</p>
+          </div>
+
+          <div class="about-content">
+            
+            <div class="about-section">
+              <h2><i class="fa-solid fa-microchip"></i> Sistemin Amacı ve Vizyonu</h2>
+              <p>GooberCraft Master DataCenter, Minecraft evreninde devasa ölçekli otonom bot operasyonlarını (Mineflayer tabanlı) yönetmek üzere tasarlanmış, ileri düzey bir kontrol panelidir. Geleneksel sunucu panellerinin aksine, bu sistem kuantum esintili dağıtık bir yapı kullanır. Botlar sadece basit komutları yerine getirmez; yerel bir LLM (Large Language Model - GooberZeka) ağına bağlanarak dinamik karar alma yetenekleri sergilerler.</p>
+              <p>Proje, <strong>Goober Engine</strong> temel alınarak geliştirilmiş olup, binlerce sanal karakterin aynı anda, gecikmesiz (lag-free) ve senkronize bir biçimde hareket etmesini sağlar. Sistem, CPU kullanımını asimetrik olarak dağıtarak ana sunucu (Host) üzerindeki yükü minimuma indirir.</p>
+            </div>
+
+            <div class="about-section">
+              <h2><i class="fa-solid fa-network-wired"></i> Quantum Node (Kasa) Mimarisi</h2>
+              <p>Panomuzda "Rack" olarak adlandırdığımız yapılar, aslında arka planda çalışan Dockerize edilmiş izole Worker Node'lardır. Her bir node, kendi içerisinde belirli sayıda bot barındırma kapasitesine sahiptir. Sistem şu şekilde çalışır:</p>
+              <ul>
+                <li style="margin-bottom: 10px;"><strong>Load Balancing:</strong> Yeni bir bot talep edildiğinde (Deploy), sistem en düşük RAM ve CPU kullanımına sahip Node'u tespit eder ve botu oraya yerleştirir.</li>
+                <li style="margin-bottom: 10px;"><strong>Self-Healing:</strong> Eğer bir Node çökerse veya bağlantı koparsa, içerisindeki botlar anında yedek (standby) durumundaki diğer Node'lara aktarılır (Live Migration).</li>
+                <li style="margin-bottom: 10px;"><strong>Low-Latency Bridge:</strong> Node'lar ve Host sunucu arasında özel olarak optimize edilmiş TCP soketleri kullanılır. Bu, paket kaybını %0.001 seviyelerine düşürür.</li>
+              </ul>
+            </div>
+
+            <blockquote>
+              "Gerçek yapay zeka, oyuncunun hareketlerini taklit eden değil, oyunun evrenini anlayıp kendi stratejisini üreten bir zekadır. GooberZeka tam olarak budur."
+              <br><br>- Geliştirici Manifestosu
+            </blockquote>
+
+            <div class="about-section">
+              <h2><i class="fa-solid fa-cogs"></i> Çekirdek Teknolojiler (Tech Stack)</h2>
+              <div class="tech-grid">
+                <div class="tech-card">
+                  <i class="fa-brands fa-node-js"></i>
+                  <h4>Node.js / Mineflayer</h4>
+                  <p>Botların oyun içi fizik motoru, pathfinding (A* algoritması) ve envanter yönetimi için core framework.</p>
+                </div>
+                <div class="tech-card">
+                  <i class="fa-brands fa-python"></i>
+                  <h4>Python (GooberZeka AI)</h4>
+                  <p>Botların mantıksal kararlarını veren, yerel ortamda çalışan optimize edilmiş GGUF formatındaki dil modeli entegrasyonu.</p>
+                </div>
+                <div class="tech-card">
+                  <i class="fa-solid fa-database"></i>
+                  <h4>Redis / In-Memory State</h4>
+                  <p>Milyonlarca blok güncellemesini ve bot koordinatlarını nanosaniyeler içinde işleyen veri deposu.</p>
+                </div>
+                <div class="tech-card">
+                  <i class="fa-brands fa-react"></i>
+                  <h4>Vanilla DOM Hyper-Rendering</h4>
+                  <p>Herhangi bir framework kullanılmadan, doğrudan Canvas ve DOM manipülasyonu ile yazılmış 60FPS arayüz render motoru.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="about-section">
+              <h2><i class="fa-solid fa-shield-halved"></i> Güvenlik Protokolleri</h2>
+              <p>Dağıtık yapıdaki bot ağları doğası gereği dış saldırılara açık olabilir. GooberCraft DataCenter, botların bağlı olduğu IP adreslerini gizleyen bir <em>Reverse Proxy Shield</em> kullanır. Kullanıcı (Owner) token'ları AES-256 bit şifreleme ile tarayıcıda saklanır ve API iletişiminde Authorization header olarak kullanılır. Her bot, sadece kendisini oluşturan Owner Token'a sahip istemciler tarafından durdurulabilir veya yönetilebilir.</p>
+            </div>
+
+          </div>
+        </div>
+      </section>
+      
+    </div>
+  </main>
+
+  <!-- ==========================================================================
+       13. MODALS HTML
+       ========================================================================== -->
+       
+  <!-- DEPLOY BOT MODAL -->
+  <div class="modal-overlay" id="deployModal">
     <div class="modal">
       <div class="modal-header">
-        <div class="modal-title">🚀 BOT DEPLOYMENT</div>
-        <button class="btn-close" onclick="closeModal()">&times;</button>
+        <div class="modal-title"><i class="fa-solid fa-rocket"></i> DEPLOY NEW INSTANCE</div>
+        <button class="btn-close" onclick="closeModals()"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <form id="addBotForm" onsubmit="handleAddBot(event)">
+      <form id="addBotForm" onsubmit="handleDeployBot(event)">
         <div class="form-group">
-          <label>BOT USERNAME</label>
-          <input type="text" id="botUsername" placeholder="Goob_Bot_01" required>
+          <label>BOT IGN (In-Game Name)</label>
+          <input type="text" id="botUsername" placeholder="Goob_Agent_007" required autocomplete="off" maxlength="16">
+          <span class="form-text">Minecraft kullanıcı adı kısıtlamalarına uymalıdır (Max 16 karakter).</span>
         </div>
         <div class="form-group">
-          <label>MINECRAFT HOST IP</label>
-          <input type="text" id="botHost" placeholder="play.hypixel.net" required>
+          <label>TARGET HOST / IP</label>
+          <input type="text" id="botHost" placeholder="play.hypixel.net" required autocomplete="off">
         </div>
-        <div class="form-group">
-          <label>PORT</label>
-          <input type="number" id="botPort" value="25565" required>
+        <div class="form-group" style="display: flex; gap: 1rem;">
+          <div style="flex: 1;">
+            <label>PORT</label>
+            <input type="number" id="botPort" value="25565" required min="1" max="65535">
+          </div>
+          <div style="flex: 1;">
+            <label>AI PROFILE</label>
+            <select style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border-light); padding: 1rem; border-radius: var(--radius-md); color: white; outline: none; font-family: 'JetBrains Mono'; font-size: 1rem;">
+              <option value="standard">Standard Worker</option>
+              <option value="combat">Combat AI</option>
+              <option value="builder">Builder Logic</option>
+              <option value="chatter">LLM Chatterbox</option>
+            </select>
+          </div>
         </div>
-        <button type="submit" id="submitBtn" class="btn-submit">CONSTRUCT BOT INSTANCE ⚡</button>
+        <button type="submit" id="submitBtn" class="btn-submit">
+          <i class="fa-solid fa-bolt"></i> INITIALIZE SEQUENCE
+        </button>
       </form>
     </div>
   </div>
 
-  <!-- SERVER RACK DETAY/INSPECTOR MODAL -->
-  <div class="modal-overlay" id="nodeInspectorModal">
+  <!-- INSPECT RACK MODAL -->
+  <div class="modal-overlay" id="inspectorModal">
     <div class="modal" style="max-width: 650px;">
       <div class="modal-header">
-        <div class="modal-title" id="inspectorNodeTitle">[RACK INSPECTOR]</div>
-        <button class="btn-close" onclick="closeInspector()">&times;</button>
+        <div class="modal-title" id="inspectorNodeTitle"><i class="fa-solid fa-server"></i> [RACK INSPECTOR]</div>
+        <button class="btn-close" onclick="closeModals()"><i class="fa-solid fa-xmark"></i></button>
       </div>
       
-      <div style="margin-bottom: 1.5rem; background: rgba(3, 7, 18, 0.8); padding: 1rem; border-radius: 12px; font-family: 'JetBrains Mono'; font-size: 0.85rem;">
-        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-          <span style="color: var(--text-muted);">SUNUCU DURUMU:</span>
-          <span style="color: var(--green); font-weight: bold;">ONLINE (ACTIVE)</span>
+      <div class="inspector-header-details">
+        <div class="inspector-row">
+          <span style="color: var(--text-muted);">HARDWARE STATUS:</span>
+          <span style="color: var(--color-success); font-weight: bold; text-shadow: 0 0 10px rgba(16,185,129,0.5);">ONLINE (SYNCHRONIZED)</span>
         </div>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-          <span style="color: var(--text-muted);">ISINMA / CPU:</span>
-          <span id="inspectorCpu" style="color: var(--cyan);">0%</span>
+        <div class="inspector-row">
+          <span style="color: var(--text-muted);">CPU THERMAL LOAD:</span>
+          <span id="inspectorCpu" style="color: var(--color-cyan); font-weight: 700;">0%</span>
         </div>
-        <div style="display: flex; justify-content: space-between;">
-          <span style="color: var(--text-muted);">BELLEK USAGE:</span>
-          <span id="inspectorRam" style="color: var(--accent);">0 MB</span>
+        <div class="inspector-row">
+          <span style="color: var(--text-muted);">MEMORY ALLOCATION:</span>
+          <span id="inspectorRam" style="color: var(--accent-primary); font-weight: 700;">0 MB</span>
+        </div>
+        <div class="inspector-row" style="margin-top: 15px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 15px;">
+          <span style="color: var(--text-dim);">SYSTEM ID:</span>
+          <span id="inspectorSysId" style="color: var(--text-dim); font-size: 0.75rem;">UUID-XXXX-XXXX</span>
         </div>
       </div>
 
-      <h4 style="font-family: 'JetBrains Mono'; margin-bottom: 0.8rem; color: var(--text-muted); font-size: 0.9rem;">
-        KASA İÇİNDEKİ AKTİF BOTLAR (<span id="inspectorBotCount">0</span>)
+      <h4 style="font-family: 'Plus Jakarta Sans'; margin-bottom: 1rem; color: var(--text-main); font-size: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">
+        ACTIVE BOT INSTANCES (<span id="inspectorBotCount" style="color: var(--color-cyan);">0</span>)
       </h4>
 
-      <div id="inspectorBotList" style="max-height: 250px; overflow-y: auto;">
-        <!-- Botlar buraya eklenecek -->
+      <div id="inspectorBotList" class="inspector-bot-list">
+        <!-- JS will populate -->
       </div>
     </div>
   </div>
 
+  <!-- TOAST CONTAINER -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- ==========================================================================
+       14. JAVASCRIPT CORE LOGIC
+       ========================================================================== -->
   <script>
-    // 🔑 KULLANICI TOKENI
+    /* --------------------------------------------------------------------------
+       A. USER IDENTIFICATION & CORE STATE
+       -------------------------------------------------------------------------- */
     function getOwnerToken() {
       let token = localStorage.getItem('goober_owner_token');
       if (!token) {
-        token = 'usr_' + Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
+        token = 'GC_' + Math.random().toString(36).substring(2, 10).toUpperCase() + '_' + Date.now().toString(16);
         localStorage.setItem('goober_owner_token', token);
       }
       return token;
     }
+    
     const MY_OWNER_TOKEN = getOwnerToken();
+    console.log("Session authenticated. Token: " + MY_OWNER_TOKEN);
 
-    let globalNodes = [];
-    let globalBots = [];
+    // Global State
+    let state = {
+      nodes: [],
+      bots: [],
+      logs: [],
+      isMocking: true // Set to true to simulate data without a real backend
+    };
 
-    function openModal() { document.getElementById('addBotModal').classList.add('show'); }
-    function closeModal() { document.getElementById('addBotModal').classList.remove('show'); }
-    function closeInspector() { document.getElementById('nodeInspectorModal').classList.remove('show'); }
+    /* --------------------------------------------------------------------------
+       B. NAVIGATION & UI MANAGEMENT
+       -------------------------------------------------------------------------- */
+    function switchView(targetViewId) {
+      // Update Sidebar Active State
+      document.querySelectorAll('.nav-item').forEach(el => {
+        if(el.dataset.target) el.classList.remove('active');
+        if(el.dataset.target === targetViewId) el.classList.add('active');
+      });
 
-    function extractArray(apiResponse, key) {
-      if (Array.isArray(apiResponse)) return apiResponse;
-      if (apiResponse && typeof apiResponse === 'object') {
-        if (Array.isArray(apiResponse[key])) return apiResponse[key];
-        if (Array.isArray(apiResponse.data)) return apiResponse.data;
+      // Hide all views, show target
+      document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+      const targetEl = document.getElementById(targetViewId);
+      if(targetEl) targetEl.classList.add('active');
+
+      // Update Breadcrumb
+      const titles = {
+        'view-dashboard': 'Dashboard',
+        'view-nodes': 'Server Racks',
+        'view-terminal': 'Live Console',
+        'view-about': 'Architecture & About'
+      };
+      document.getElementById('breadcrumb-text').innerText = titles[targetViewId] || 'Panel';
+      
+      // Auto-scroll terminal if navigating to it
+      if(targetViewId === 'view-terminal') {
+        scrollToBottomTerm();
       }
-      return [];
     }
 
-    // BOT EKLEME
-    async function handleAddBot(e) {
+    // Modal Handling
+    function openDeployModal() {
+      document.getElementById('deployModal').classList.add('show');
+      document.getElementById('botUsername').focus();
+    }
+    
+    function closeModals() {
+      document.querySelectorAll('.modal-overlay').forEach(el => el.classList.remove('show'));
+    }
+
+    // Close modals on outside click
+    window.onclick = function(event) {
+      if (event.target.classList.contains('modal-overlay')) {
+        closeModals();
+      }
+    }
+
+    // Toast Notifications
+    function showToast(type, title, message) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      
+      let icon = 'fa-info-circle';
+      if(type === 'success') icon = 'fa-check-circle';
+      if(type === 'error') icon = 'fa-exclamation-triangle';
+
+      toast.innerHTML = `
+        <div class="toast-icon"><i class="fa-solid ${icon}"></i></div>
+        <div class="toast-content">
+          <h4>${title}</h4>
+          <p>${message}</p>
+        </div>
+      `;
+      
+      container.appendChild(toast);
+      
+      // Animate in
+      setTimeout(() => toast.classList.add('show'), 50);
+      
+      // Remove after 4 seconds
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 400); // Wait for transition
+      }, 4000);
+    }
+
+    /* --------------------------------------------------------------------------
+       C. MOCK DATA GENERATION (Since no real backend is provided)
+       -------------------------------------------------------------------------- */
+    const RACK_NAMES = ['Alpha-Core', 'Beta-Nexus', 'Gamma-Matrix', 'Delta-Void', 'Epsilon-Grid', 'Zeta-Prime', 'Omega-Node'];
+    
+    function initMockData() {
+      // Create 6-8 fake nodes
+      const nodeCount = 6 + Math.floor(Math.random() * 3);
+      for(let i=0; i<nodeCount; i++) {
+        state.nodes.push({
+          id: 'node_' + Math.random().toString(36).substr(2, 9),
+          name: RACK_NAMES[i % RACK_NAMES.length] + '-' + (i+1),
+          maxBots: 10 + Math.floor(Math.random() * 15),
+          cpuUsage: Math.floor(Math.random() * 40) + 10,
+          ramUsage: (Math.random() * 4 + 1).toFixed(1) + ' GB',
+          uptime: (98 + Math.random() * 1.99).toFixed(2) + '%'
+        });
+      }
+      
+      // Create some initial bots owned by 'others' and maybe one by us
+      state.nodes.forEach(node => {
+        const botCount = Math.floor(Math.random() * (node.maxBots * 0.7)); // Up to 70% full
+        for(let j=0; j<botCount; j++) {
+          createMockBot(node.id, false);
+        }
+      });
+      
+      // Add one bot owned by current user just to show the UI difference
+      if(state.nodes.length > 0) {
+        createMockBot(state.nodes[0].id, true, "GoobIsBackk_Bot");
+      }
+      
+      updateUI();
+      addLogEntry('info', 'System initialized. Loaded ' + state.nodes.length + ' quantum nodes.');
+      showToast('success', 'System Ready', 'Connected to Quantum DataCenter backend.');
+    }
+
+    function createMockBot(nodeId, isMine = false, specificName = null) {
+      const names = ['Miner_Bot', 'AFK_Pool', 'Trader_Joe', 'PvP_Master', 'Looey_Clone', 'Builder_X'];
+      const hosts = ['mc.hypixel.net', '2b2t.org', 'farlands.cc', 'localhost'];
+      
+      const bot = {
+        id: 'bot_' + Math.random().toString(36).substr(2, 9),
+        nodeId: nodeId,
+        username: specificName || names[Math.floor(Math.random() * names.length)] + '_' + Math.floor(Math.random()*999),
+        host: hosts[Math.floor(Math.random() * hosts.length)],
+        ownerToken: isMine ? MY_OWNER_TOKEN : 'other_user_' + Math.random()
+      };
+      state.bots.push(bot);
+      return bot;
+    }
+
+    /* --------------------------------------------------------------------------
+       D. BUSINESS LOGIC (DEPLOY, STOP, INSPECT)
+       -------------------------------------------------------------------------- */
+    async function handleDeployBot(e) {
       e.preventDefault();
       const submitBtn = document.getElementById('submitBtn');
       const username = document.getElementById('botUsername').value.trim();
       const host = document.getElementById('botHost').value.trim();
-      const port = Number(document.getElementById('botPort').value);
-
-      submitBtn.disabled = true;
-      submitBtn.innerText = 'DEPLOYING TO CLUSTER... ⏳';
-
-      try {
-        const res = await fetch('/api/bots/create', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, host, port, ownerToken: MY_OWNER_TOKEN })
-        });
-
-        const data = await res.json();
-        if (data.success) {
-          closeModal();
-          document.getElementById('addBotForm').reset();
-          document.getElementById('botPort').value = '25565';
-          await fetchDashboardData();
-        } else {
-          alert('❌ ' + (data.message || 'Deployment hatası.'));
-        }
-      } catch (err) {
-        alert('❌ Sunucu iletişim hatası.');
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerText = 'CONSTRUCT BOT INSTANCE ⚡';
-      }
-    }
-
-    // BOT DURDURMA - TAM DÜZELTİLDİ
-    async function stopBot(botId, username, event) {
-      if (event) event.stopPropagation(); // Kart tıklamasını engelle
-
-      if (!confirm(`'${username}' botunu durdurup kapatmak istediğinizden emin misiniz?`)) return;
-
-      try {
-        const res = await fetch('/api/bots/stop', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: botId, ownerToken: MY_OWNER_TOKEN })
-        });
-
-        const data = await res.json();
-        if (data.success) {
-          await fetchDashboardData();
-          // Eğer inspector modali açıksa onu da güncelle
-          const inspectorModal = document.getElementById('nodeInspectorModal');
-          if (inspectorModal.classList.contains('show')) {
-            const openNodeId = inspectorModal.getAttribute('data-open-node-id');
-            if (openNodeId) inspectNode(openNodeId);
-          }
-        } else {
-          alert('❌ ' + (data.message || 'Bot durdurulamadı.'));
-        }
-      } catch (err) {
-        alert('❌ İletişim hatası.');
-      }
-    }
-
-    // KASA (RACK NODE) İNCELEME TIKLAMA
-    function inspectNode(nodeId) {
-      const node = globalNodes.find(n => n.id === nodeId);
-      if (!node) return;
-
-      const nodeBots = globalBots.filter(b => b.nodeId === nodeId || b.node_id === nodeId);
       
-      document.getElementById('inspectorNodeTitle').innerText = `[RACK DETAY] ${node.name || node.id}`;
-      document.getElementById('inspectorCpu').innerText = `${node.cpuUsage || 12}%`;
-      document.getElementById('inspectorRam').innerText = `${node.ramUsage || '1.2 GB'}`;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> ALLOCATING RESOURCES...';
+
+      // Find node with most space
+      let bestNode = null;
+      let maxFreeSpace = -1;
+      
+      state.nodes.forEach(n => {
+        const botsInNode = state.bots.filter(b => b.nodeId === n.id).length;
+        const free = n.maxBots - botsInNode;
+        if(free > maxFreeSpace) {
+          maxFreeSpace = free;
+          bestNode = n;
+        }
+      });
+
+      // Simulate network delay
+      setTimeout(() => {
+        if(!bestNode || maxFreeSpace <= 0) {
+          showToast('error', 'Deployment Failed', 'No available capacity in server clusters.');
+        } else {
+          // Success
+          createMockBot(bestNode.id, true, username);
+          updateUI();
+          closeModals();
+          document.getElementById('addBotForm').reset();
+          showToast('success', 'Instance Deployed', `${username} successfully booted on ${bestNode.name}.`);
+          addLogEntry('success', `New bot [${username}] provisioned to [${bestNode.name}]`);
+          
+          // Spike CPU briefly
+          bestNode.cpuUsage = Math.min(100, bestNode.cpuUsage + 25);
+        }
+        
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fa-solid fa-bolt"></i> INITIALIZE SEQUENCE';
+      }, 1200);
+    }
+
+    function stopBot(botId, username, event) {
+      if(event) event.stopPropagation(); // Prevent opening inspector
+      
+      if(!confirm(`Are you sure you want to terminate instance '${username}'?`)) return;
+
+      const botIndex = state.bots.findIndex(b => b.id === botId);
+      if(botIndex > -1) {
+        state.bots.splice(botIndex, 1);
+        updateUI();
+        showToast('info', 'Instance Terminated', `${username} has been stopped.`);
+        addLogEntry('warn', `Instance [${username}] was forcefully terminated by owner.`);
+        
+        // Refresh inspector if open
+        const inspectorModal = document.getElementById('inspectorModal');
+        if (inspectorModal.classList.contains('show')) {
+          const openNodeId = inspectorModal.getAttribute('data-node-id');
+          if (openNodeId) inspectNode(openNodeId);
+        }
+      }
+    }
+
+    function inspectNode(nodeId) {
+      const node = state.nodes.find(n => n.id === nodeId);
+      if(!node) return;
+
+      const nodeBots = state.bots.filter(b => b.nodeId === nodeId);
+      
+      document.getElementById('inspectorNodeTitle').innerHTML = `<i class="fa-solid fa-server"></i> [RACK] ${node.name}`;
+      document.getElementById('inspectorCpu').innerText = `${node.cpuUsage}%`;
+      document.getElementById('inspectorRam').innerText = node.ramUsage;
+      document.getElementById('inspectorSysId').innerText = `UUID-${node.id.toUpperCase()}`;
       document.getElementById('inspectorBotCount').innerText = nodeBots.length;
 
-      const container = document.getElementById('inspectorBotList');
-      const modal = document.getElementById('nodeInspectorModal');
-      modal.setAttribute('data-open-node-id', nodeId);
+      const listContainer = document.getElementById('inspectorBotList');
+      const modal = document.getElementById('inspectorModal');
+      modal.setAttribute('data-node-id', nodeId);
 
       if (nodeBots.length === 0) {
-        container.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 1rem;">Bu sunucu kasasında şu an aktif bot bulunmuyor.</div>`;
+        listContainer.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 2rem;">No active neural connections detected in this rack.</div>`;
       } else {
-        container.innerHTML = nodeBots.map(b => {
-          const isMyBot = b.ownerToken === MY_OWNER_TOKEN;
-          const targetId = b.id || b._id || b.botId;
+        listContainer.innerHTML = nodeBots.map(b => {
+          const isMine = b.ownerToken === MY_OWNER_TOKEN;
           return `
-            <div class="inspector-bot-item">
+            <div class="inspector-bot-item" style="${isMine ? 'border-left: 3px solid var(--color-cyan);' : ''}">
               <div>
-                <span style="color: var(--cyan); font-weight: bold;">🤖 ${b.username}</span>
-                <span style="font-size: 0.75rem; color: var(--text-muted); margin-left: 8px;">(${b.host || 'Hypixel'})</span>
+                <span style="color: ${isMine ? 'var(--color-cyan)' : 'var(--text-main)'}; font-weight: 700; font-size: 1.05rem;">
+                  <i class="fa-solid fa-robot" style="margin-right: 8px; font-size: 0.9rem;"></i>${b.username}
+                </span>
+                <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 4px;">
+                  Target: <span style="color: var(--text-muted)">${b.host}</span>
+                </div>
               </div>
               <div>
-                ${isMyBot 
-                  ? `<button class="bot-chip btn-stop" onclick="stopBot('${targetId}', '${b.username}', event)">DURDUR ✕</button>` 
-                  : `<span style="font-size: 0.75rem; color: var(--text-muted);">Diğer Kullanıcı</span>`}
+                ${isMine 
+                  ? `<button class="btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.75rem; background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4); color: var(--color-danger); box-shadow: none;" onclick="stopBot('${b.id}', '${b.username}', event)"><i class="fa-solid fa-power-off"></i> TERMINATE</button>` 
+                  : `<span style="font-size: 0.7rem; color: var(--text-dim); background: rgba(255,255,255,0.05); padding: 3px 8px; border-radius: 4px;"><i class="fa-solid fa-lock"></i> SYSTEM PROTECTED</span>`}
               </div>
             </div>
           `;
@@ -537,152 +1833,300 @@
       modal.classList.add('show');
     }
 
-    // DASHBOARD VERİ ÇEKME
-    async function fetchDashboardData() {
-      try {
-        const [nodesRes, botsRes] = await Promise.all([
-          fetch('/api/nodes?t=' + Date.now()),
-          fetch('/api/bots?t=' + Date.now())
-        ]);
+    /* --------------------------------------------------------------------------
+       E. UI UPDATES & RENDERERS
+       -------------------------------------------------------------------------- */
+    function updateUI() {
+      // 1. Global Headers
+      document.getElementById('global-nodes').innerText = state.nodes.length;
+      document.getElementById('global-bots').innerText = state.bots.length;
+      document.getElementById('dash-bot-count').innerText = state.bots.length;
 
-        const rawNodes = await nodesRes.json();
-        const rawBots = await botsRes.json();
+      // 2. Render Node Grid
+      const container = document.getElementById('nodes-container');
+      container.innerHTML = state.nodes.map(node => {
+        const nodeBots = state.bots.filter(b => b.nodeId === node.id);
+        const currentBots = nodeBots.length;
+        const percentage = Math.min((currentBots / node.maxBots) * 100, 100);
+        
+        let barColor = "linear-gradient(90deg, var(--color-cyan), var(--accent-primary))";
+        if(percentage > 90) barColor = "var(--color-danger)";
+        else if (percentage > 75) barColor = "var(--color-warning)";
 
-        globalNodes = extractArray(rawNodes, 'nodes');
-        globalBots = extractArray(rawBots, 'bots');
+        const botChips = nodeBots.length > 0 
+          ? nodeBots.slice(0, 12).map(b => { // Show max 12 chips so it doesn't break layout
+              const isMine = b.ownerToken === MY_OWNER_TOKEN;
+              return `
+                <span class="bot-chip ${isMine ? 'mine' : ''}" title="${b.username} on ${b.host}">
+                  <i class="fa-solid ${isMine ? 'fa-robot' : 'fa-microchip'}"></i> ${b.username.substring(0, 8)}${b.username.length > 8 ? '..' : ''}
+                  ${isMine ? `<span class="btn-stop" title="Force Kill" onclick="stopBot('${b.id}', '${b.username}', event)"><i class="fa-solid fa-xmark"></i></span>` : ''}
+                </span>
+              `;
+            }).join('') + (nodeBots.length > 12 ? `<span class="bot-chip" style="opacity: 0.7;">+${nodeBots.length - 12} more</span>` : '')
+          : `<span style="font-size: 0.8rem; color: var(--text-dim); font-style: italic;">Standby Mode - No Active Bots</span>`;
 
-        document.getElementById('total-nodes').innerText = globalNodes.length;
-        document.getElementById('total-bots').innerText = globalBots.length;
-
-        const container = document.getElementById('server-container');
-        if (globalNodes.length === 0) {
-          container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">Aktif Node Kümeleri Bekleniyor...</div>';
-          return;
-        }
-
-        container.innerHTML = globalNodes.map(node => {
-          const maxBots = node.maxBots || 10;
-          const nodeBots = globalBots.filter(b => b.nodeId === node.id || b.node_id === node.id);
-          const currentBots = nodeBots.length || node.currentBots || 0;
-          const percentage = Math.min((currentBots / maxBots) * 100, 100);
-          
-          let fillStyle = "background: var(--cyan); box-shadow: 0 0 10px var(--cyan);";
-          if (percentage >= 100) fillStyle = "background: var(--red); box-shadow: 0 0 10px var(--red);";
-          else if (percentage >= 80) fillStyle = "background: var(--yellow); box-shadow: 0 0 10px var(--yellow);";
-
-          const botChipsHtml = nodeBots.length > 0 
-            ? nodeBots.map(b => {
-                const isMyBot = b.ownerToken === MY_OWNER_TOKEN;
-                const targetId = b.id || b._id || b.botId;
-                return `
-                  <span class="bot-chip ${isMyBot ? 'mine' : ''}">
-                    🤖 ${b.username}
-                    ${isMyBot ? `<span class="btn-stop" title="Durdur" onclick="stopBot('${targetId}', '${b.username}', event)">✕</span>` : ''}
-                  </span>
-                `;
-              }).join('')
-            : `<span class="bot-chip" style="opacity: 0.4;">KASA BOŞ</span>`;
-
-          return `
-            <div class="server-card" onclick="inspectNode('${node.id}')">
-              <div>
-                <div class="server-header">
-                  <div class="server-title">
-                    <span style="color: var(--cyan);">[RACK]</span> ${node.name || node.id}
-                  </div>
-                  <div style="display: flex; align-items: center; gap: 10px;">
-                    <span class="click-hint">DETAY</span>
-                    <div class="led-group">
-                      <div class="led green" title="Power"></div>
-                      <div class="led blue" title="Network"></div>
-                    </div>
-                  </div>
+        return `
+          <div class="server-card" onclick="inspectNode('${node.id}')">
+            <div>
+              <div class="server-card-header">
+                <div class="server-title">
+                  <i class="fa-solid fa-server" style="color: var(--color-cyan);"></i> ${node.name}
                 </div>
-
-                <div class="server-metrics">
-                  <div>CPU: <span class="metric-val">${node.cpuUsage || 8}%</span></div>
-                  <div>RAM: <span class="metric-val">${node.ramUsage || '1.1 GB'}</span></div>
-                  <div>PING: <span class="metric-val">11ms</span></div>
-                  <div>UPTIME: <span class="metric-val">99.9%</span></div>
-                </div>
-
-                <div class="bot-capacity">
-                  <div class="capacity-info">
-                    <span>DOLULUK</span>
-                    <span><strong>${currentBots}</strong> / ${maxBots} BOT</span>
-                  </div>
-                  <div class="progress-bar">
-                    <div class="progress-fill" style="width: ${percentage}%; ${fillStyle}"></div>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <span class="click-hint">INSPECT <i class="fa-solid fa-magnifying-glass" style="margin-left: 3px;"></i></span>
+                  <div class="led-group">
+                    <div class="led green" title="Power"></div>
+                    <div class="led blue" title="Network"></div>
+                    ${percentage > 90 ? '<div class="led red" title="High Load"></div>' : ''}
                   </div>
                 </div>
               </div>
 
-              <div class="bot-list">
-                ${botChipsHtml}
+              <div class="server-metrics">
+                <div class="metric-item">
+                  <span>CPU Load</span> <span class="metric-val ${node.cpuUsage > 80 ? 'alert' : ''}">${node.cpuUsage}%</span>
+                </div>
+                <div class="metric-item">
+                  <span>Memory Alloc</span> <span class="metric-val">${node.ramUsage}</span>
+                </div>
+                <div class="metric-item">
+                  <span>Ping</span> <span class="metric-val">1ms</span>
+                </div>
+                <div class="metric-item">
+                  <span>Uptime</span> <span class="metric-val" style="color: var(--color-success)">${node.uptime}</span>
+                </div>
+              </div>
+
+              <div class="bot-capacity">
+                <div class="capacity-info">
+                  <span>NODE CAPACITY</span>
+                  <span><strong>${currentBots}</strong> / ${node.maxBots} OPs</span>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress-fill" style="width: ${percentage}%; background: ${barColor}; box-shadow: 0 0 10px ${barColor};"></div>
+                </div>
               </div>
             </div>
-          `;
-        }).join('');
 
-      } catch (err) {
-        console.error("Cluster güncelleme hatası:", err);
-      }
+            <div class="bot-list">
+              ${botChips}
+            </div>
+          </div>
+        `;
+      }).join('');
     }
 
-    // ARKA PLAN CANLI NODE CANVAS ANIMASYONU
+    /* --------------------------------------------------------------------------
+       F. BACKGROUND SYSTEMS (DASHBOARD CHARTS, TERMINAL LOGS)
+       -------------------------------------------------------------------------- */
+    
+    // Terminal Log System
+    const termBody = document.getElementById('terminal-body');
+    const activityFeed = document.getElementById('activity-feed');
+    
+    function addLogEntry(type, msg) {
+      const now = new Date();
+      const timeStr = now.getHours().toString().padStart(2, '0') + ':' + 
+                      now.getMinutes().toString().padStart(2, '0') + ':' + 
+                      now.getSeconds().toString().padStart(2, '0');
+      
+      // Update Terminal
+      const logDiv = document.createElement('div');
+      logDiv.className = 'log-line';
+      
+      let prefix = 'INFO:';
+      if(type === 'error') prefix = 'ERROR:';
+      if(type === 'warn') prefix = 'WARN:';
+      if(type === 'success') prefix = 'SUCCESS:';
+
+      logDiv.innerHTML = `<span class="log-time">[${timeStr}]</span><span class="log-type ${type}"> ${prefix}</span> ${msg}`;
+      
+      // Remove cursor from previous last line
+      const oldCursor = termBody.querySelector('.cursor-blink');
+      if(oldCursor) oldCursor.remove();
+      
+      logDiv.innerHTML += '<span class="cursor-blink"></span>';
+      termBody.appendChild(logDiv);
+      
+      if(termBody.children.length > 100) termBody.removeChild(termBody.children[0]); // Limit DOM nodes
+      scrollToBottomTerm();
+
+      // Update Dashboard Activity Feed
+      const actDiv = document.createElement('div');
+      actDiv.className = 'activity-item';
+      
+      let indicatorClass = 'success';
+      if(type === 'error' || type === 'warn') indicatorClass = 'danger';
+      if(type === 'info') indicatorClass = 'warning';
+
+      actDiv.innerHTML = `
+        <div class="activity-indicator ${indicatorClass}"></div>
+        <div class="activity-content">
+          <div class="activity-text">${msg.replace(/\[(.*?)\]/g, '<strong>$1</strong>')}</div>
+          <div class="activity-time">${timeStr}</div>
+        </div>
+      `;
+      activityFeed.insertBefore(actDiv, activityFeed.firstChild);
+      if(activityFeed.children.length > 10) activityFeed.removeChild(activityFeed.lastChild);
+    }
+
+    function scrollToBottomTerm() {
+      termBody.scrollTop = termBody.scrollHeight;
+    }
+
+    // Simulate random system events
+    setInterval(() => {
+      const events = [
+        { t: 'info', m: 'Garbage collection completed. Freed 450MB.' },
+        { t: 'info', m: 'Syncing tick rate with Host servers...' },
+        { t: 'success', m: 'LLM Model [GooberZeka] inference took 45ms.' },
+        { t: 'warn', m: 'Slight latency detected on Node Epsilon-Grid.' },
+        { t: 'info', m: 'Pathfinding matrix recalculated for 14 entities.' }
+      ];
+      if(Math.random() > 0.6) {
+        const ev = events[Math.floor(Math.random() * events.length)];
+        addLogEntry(ev.t, ev.m);
+        
+        // Randomly fluctuate ping
+        document.getElementById('global-ping').innerText = (10 + Math.floor(Math.random() * 8)) + 'ms';
+      }
+    }, 4500);
+
+    // Mock Dashboard Graph Initializer
+    const graphContainer = document.getElementById('mock-graph');
+    for(let i=0; i<30; i++) {
+      const bar = document.createElement('div');
+      bar.className = 'graph-bar';
+      const val = Math.floor(Math.random() * 60) + 10;
+      bar.style.height = val + '%';
+      bar.setAttribute('data-val', val);
+      graphContainer.appendChild(bar);
+    }
+    
+    // Animate Graph
+    setInterval(() => {
+      const bars = document.querySelectorAll('.graph-bar');
+      for(let i=0; i<bars.length - 1; i++) {
+        const nextVal = bars[i+1].getAttribute('data-val');
+        bars[i].style.height = nextVal + '%';
+        bars[i].setAttribute('data-val', nextVal);
+      }
+      const lastBar = bars[bars.length-1];
+      const newVal = Math.floor(Math.random() * 40) + 30; // 30-70%
+      lastBar.style.height = newVal + '%';
+      lastBar.setAttribute('data-val', newVal);
+      
+      // Also slightly fluctuate CPU on nodes
+      state.nodes.forEach(n => {
+        n.cpuUsage = Math.max(5, Math.min(99, n.cpuUsage + (Math.floor(Math.random() * 11) - 5))); // +/- 5%
+      });
+      if(document.getElementById('view-nodes').classList.contains('active')){
+         updateUI(); // Keep visual bars updated if view is active
+      }
+    }, 2000);
+
+    /* --------------------------------------------------------------------------
+       G. NETWORK CANVAS ANIMATION (Background Effect)
+       -------------------------------------------------------------------------- */
     const canvas = document.getElementById('network-canvas');
     const ctx = canvas.getContext('2d');
+    let particles = [];
+    
+    // Mouse interaction variables
+    let mouseX = -1000;
+    let mouseY = -1000;
+
+    window.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    });
+    
+    window.addEventListener('mouseleave', () => {
+      mouseX = -1000;
+      mouseY = -1000;
+    });
 
     function resizeCanvas() {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
+      initParticles();
     }
     window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
-    const particles = Array.from({ length: 45 }, () => ({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      vx: (Math.random() - 0.5) * 0.6,
-      vy: (Math.random() - 0.5) * 0.6,
-      radius: Math.random() * 2 + 1
-    }));
+    
+    function initParticles() {
+      particles = [];
+      const particleCount = Math.floor((window.innerWidth * window.innerHeight) / 25000); // Responsive amount
+      for (let i = 0; i < particleCount; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          vx: (Math.random() - 0.5) * 0.8,
+          vy: (Math.random() - 0.5) * 0.8,
+          radius: Math.random() * 1.5 + 0.5,
+          color: Math.random() > 0.5 ? '#06b6d4' : '#6366f1' // Cyan or Purple
+        });
+      }
+    }
 
     function animateNetwork() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       for (let i = 0; i < particles.length; i++) {
         let p = particles[i];
-        p.x += p.vx; p.y += p.vy;
+        p.x += p.vx; 
+        p.y += p.vy;
 
+        // Bounce edges
         if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
         if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
 
+        // Draw particle
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = '#06b6d4';
+        ctx.fillStyle = p.color;
         ctx.fill();
 
+        // Connect particles
         for (let j = i + 1; j < particles.length; j++) {
           let p2 = particles[j];
           let dist = Math.hypot(p.x - p2.x, p.y - p2.y);
 
-          if (dist < 140) {
+          if (dist < 120) {
             ctx.beginPath();
             ctx.moveTo(p.x, p.y);
             ctx.lineTo(p2.x, p2.y);
-            ctx.strokeStyle = `rgba(99, 102, 241, ${1 - dist / 140})`;
-            ctx.lineWidth = 0.6;
+            // Opacity based on distance
+            ctx.strokeStyle = `rgba(99, 102, 241, ${0.15 - dist / 800})`; 
+            ctx.lineWidth = 0.5;
             ctx.stroke();
           }
+        }
+        
+        // Connect to mouse
+        let mouseDist = Math.hypot(p.x - mouseX, p.y - mouseY);
+        if(mouseDist < 200) {
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(mouseX, mouseY);
+            ctx.strokeStyle = `rgba(6, 182, 212, ${0.3 - mouseDist / 600})`; 
+            ctx.lineWidth = 0.8;
+            ctx.stroke();
+            
+            // Slight attraction to mouse
+            p.x -= (p.x - mouseX) * 0.005;
+            p.y -= (p.y - mouseY) * 0.005;
         }
       }
       requestAnimationFrame(animateNetwork);
     }
-    animateNetwork();
+    
+    // Boot sequence
+    window.onload = () => {
+      resizeCanvas();
+      animateNetwork();
+      setTimeout(initMockData, 800); // Fake load time
+    };
 
-    setInterval(fetchDashboardData, 3000);
-    fetchDashboardData();
   </script>
 </body>
 </html>

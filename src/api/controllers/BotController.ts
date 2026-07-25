@@ -102,11 +102,15 @@ export class BotController {
     }
 
     try {
-      // 3. MINEFLAYER BOTUNU SUNUCUDAN GERÇEKTEN ÇIKAR
-      if (typeof botData.quit === 'function') {
+      // 3. MINEFLAYER BOTUNU TEMİZCE DURDUR (Oto-tekrar bağlanmayı engelle)
+      if (typeof botData.stop === 'function') {
+        botData.stop(); // Oto-reconnect sayacını durduran özel metot
+      } else if (typeof botData.quit === 'function') {
         botData.quit();
       } else if (typeof botData.end === 'function') {
         botData.end();
+      } else if (botData.bot && typeof botData.bot.stop === 'function') {
+        botData.bot.stop();
       } else if (botData.bot && typeof botData.bot.end === 'function') {
         botData.bot.end();
       }
