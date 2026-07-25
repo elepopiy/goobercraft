@@ -1,0 +1,1 @@
+{"version":3,"file":"TimeManager.d.ts","sourceRoot":"","sources":["../../src/managers/TimeManager.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,QAAQ,EAAE,MAAM,kBAAkB,CAAC;AAE5C,qBAAa,WAAW;IAIV,OAAO,CAAC,QAAQ,CAAC,GAAG;IAHzB,GAAG,SAAK;IACR,SAAS,SAAK;IAErB,YAA6B,GAAG,EAAE,QAAQ,EAEzC;IAED,OAAO,CAAC,gBAAgB;CAOzB"}

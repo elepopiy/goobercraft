@@ -1,0 +1,1 @@
+{"version":3,"file":"FoodManager.d.ts","sourceRoot":"","sources":["../../src/managers/FoodManager.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,QAAQ,EAAE,MAAM,kBAAkB,CAAC;AAG5C,qBAAa,WAAW;IAIV,OAAO,CAAC,QAAQ,CAAC,GAAG;IAHzB,IAAI,SAAM;IACV,UAAU,SAAK;IAEtB,YAA6B,GAAG,EAAE,QAAQ,EAEzC;IAED,OAAO,CAAC,kBAAkB;CAM3B"}

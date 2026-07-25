@@ -1,0 +1,1 @@
+{"version":3,"file":"HealthManager.d.ts","sourceRoot":"","sources":["../../src/managers/HealthManager.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,QAAQ,EAAE,MAAM,kBAAkB,CAAC;AAG5C,qBAAa,aAAa;IAGZ,OAAO,CAAC,QAAQ,CAAC,GAAG;IAFzB,MAAM,SAAM;IAEnB,YAA6B,GAAG,EAAE,QAAQ,EAEzC;IAED,OAAO,CAAC,kBAAkB;CAK3B"}

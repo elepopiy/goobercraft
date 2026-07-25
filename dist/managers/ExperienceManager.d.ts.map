@@ -1,0 +1,1 @@
+{"version":3,"file":"ExperienceManager.d.ts","sourceRoot":"","sources":["../../src/managers/ExperienceManager.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,QAAQ,EAAE,MAAM,kBAAkB,CAAC;AAC5C,OAAO,EAAE,eAAe,EAAE,MAAM,gBAAgB,CAAC;AAGjD,qBAAa,iBAAiB;IAGhB,OAAO,CAAC,QAAQ,CAAC,GAAG;IAFzB,KAAK,EAAE,eAAe,CAAuC;IAEpE,YAA6B,GAAG,EAAE,QAAQ,EAEzC;IAED,OAAO,CAAC,gBAAgB;CASzB"}
