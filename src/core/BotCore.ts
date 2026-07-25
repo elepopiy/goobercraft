@@ -93,7 +93,7 @@ export class BotCore {
     );
 
     // =====================================================
-    // PATHFINDER BAĞLANTISI ('self' ile 'this' bağlamı korunuyor)
+    // PATHFINDER BAĞLANTISI
     // =====================================================
     const self = this;
     this.pathfinder = new Pathfinder(
