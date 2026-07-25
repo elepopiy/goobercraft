@@ -146,25 +146,30 @@
       border-radius: 8px;
       font-size: 0.8rem;
       color: var(--text-muted);
-    }
-    
-    .bot-chip.active {
-      color: var(--text);
-      border-color: rgba(99, 102, 241, 0.4);
-      background: rgba(99, 102, 241, 0.15);
-      cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 6px;
+    }
+    
+    .bot-chip.mine {
+      color: var(--text);
+      border-color: rgba(99, 102, 241, 0.4);
+      background: rgba(99, 102, 241, 0.15);
       font-weight: 500;
-      transition: all 0.2s ease;
     }
 
-    .bot-chip.active:hover {
-      background: rgba(239, 68, 68, 0.25);
-      border-color: rgba(239, 68, 68, 0.5);
+    .bot-chip .btn-stop {
       color: #fca5a5;
-      transform: scale(1.03);
+      cursor: pointer;
+      font-weight: bold;
+      padding: 0 2px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+
+    .bot-chip .btn-stop:hover {
+      background: rgba(239, 68, 68, 0.4);
+      color: white;
     }
 
     .empty-state {
@@ -241,7 +246,7 @@
     <div class="empty-state">Yükleniyor veya henüz aktif Node/Server bulunamadı...</div>
   </div>
 
-  <!-- AÇILIR FORM PENCERESİ (MODAL) -->
+  <!-- AÇILIR FORM PENCERESİ -->
   <div class="modal-overlay" id="addBotModal">
     <div class="modal">
       <div class="modal-header">
@@ -267,10 +272,21 @@
   </div>
 
   <script>
+    // 🔑 KULLANICI İÇİN EŞSİZ SAHİPLİK TOKENI
+    function getOwnerToken() {
+      let token = localStorage.getItem('goober_owner_token');
+      if (!token) {
+        token = 'user_' + Math.random().toString(36).substring(2, 11) + Date.now().toString(36);
+        localStorage.setItem('goober_owner_token', token);
+      }
+      return token;
+    }
+
+    const MY_OWNER_TOKEN = getOwnerToken();
+
     function openModal() { document.getElementById('addBotModal').classList.add('show'); }
     function closeModal() { document.getElementById('addBotModal').classList.remove('show'); }
 
-    // Dizi dönüşlerini esnekçe çözen yardımcı yardımcı fonksiyon
     function extractArray(apiResponse, key) {
       if (Array.isArray(apiResponse)) return apiResponse;
       if (apiResponse && typeof apiResponse === 'object') {
@@ -294,7 +310,12 @@
         const res = await fetch('/api/bots/create', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, host, port })
+          body: JSON.stringify({ 
+            username, 
+            host, 
+            port, 
+            ownerToken: MY_OWNER_TOKEN // Sahiplik jetonu gönderiliyor
+          })
         });
 
         const data = await res.json();
@@ -321,14 +342,17 @@
         const res = await fetch('/api/bots/stop', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: botId })
+          body: JSON.stringify({ 
+            id: botId,
+            ownerToken: MY_OWNER_TOKEN // Sahiplik jetonu ile silme isteği
+          })
         });
 
         const data = await res.json();
         if (data.success) {
           await fetchDashboardData();
         } else {
-          alert('❌ Bot durdurulamadı: ' + (data.message || 'Bilinmeyen hata'));
+          alert('❌ ' + (data.message || 'Bot durdurulamadı.'));
         }
       } catch (err) {
         alert('❌ Sunucuyla iletişim hatası oluştu.');
@@ -345,7 +369,6 @@
         const rawNodes = await nodesRes.json();
         const rawBots = await botsRes.json();
 
-        // Her iki veri türünü güvenli diziye aktarma
         const nodes = extractArray(rawNodes, 'nodes');
         const bots = extractArray(rawBots, 'bots');
 
@@ -361,7 +384,6 @@
         container.innerHTML = nodes.map(node => {
           const maxBots = node.maxBots || 10;
           
-          // Node altındaki botları eşleştirme
           const nodeBots = bots.filter(b => b.nodeId === node.id || b.node_id === node.id);
           const currentBots = nodeBots.length || node.currentBots || 0;
           const percentage = Math.min((currentBots / maxBots) * 100, 100);
@@ -371,14 +393,17 @@
           else if (percentage >= 80) fillStyle = "background: var(--yellow);";
 
           const botChipsHtml = nodeBots.length > 0 
-            ? nodeBots.map(b => `
-                <span class="bot-chip active" title="Durdurmak için tıkla" onclick="stopBot('${b.id}', '${b.username}')">
-                  🤖 ${b.username} ✕
-                </span>
-              `).join('')
+            ? nodeBots.map(b => {
+                const isMyBot = b.ownerToken === MY_OWNER_TOKEN;
+                return `
+                  <span class="bot-chip ${isMyBot ? 'mine' : ''}">
+                    🤖 ${b.username}
+                    ${isMyBot ? `<span class="btn-stop" title="Senin botun - Durdur" onclick="stopBot('${b.id}', '${b.username}')">✕</span>` : ''}
+                  </span>
+                `;
+              }).join('')
             : `<span class="bot-chip">Bot Yok</span>`;
 
-          // Master veya Local Node varsayılan olarak aktiftir
           const isOnline = node.online !== false;
 
           return `
@@ -412,7 +437,6 @@
       }
     }
 
-    // Her 3 saniyede bir otomatik verileri tazele
     setInterval(fetchDashboardData, 3000);
     fetchDashboardData();
   </script>

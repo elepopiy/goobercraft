@@ -3,10 +3,19 @@ import { BotController } from "../controllers/BotController";
 
 const router = Router();
 
-router.get("/", BotController.getBots);
+// Bot Listeleme Endpoint'i
+router.get("/", (req, res) => {
+  BotController.getBots(req, res);
+});
 
-router.post("/create", BotController.createBot);
+// Bot Oluşturma Endpoint'i
+router.post("/create", (req, res) => {
+  BotController.create(req, res);
+});
 
-router.post("/stop", BotController.stopBot);
+// Bot Durdurma Endpoint'i
+router.post("/stop", (req, res) => {
+  BotController.stop(req, res);
+});
 
 export default router;

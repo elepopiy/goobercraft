@@ -2,39 +2,24 @@ import { Request, Response } from "express";
 import { manager } from "../../managers";
 
 export class NodeController {
-  public static register(req: Request, res: Response) {
-    const { id, name, url, maxBots } = req.body;
+  public static getNodes(req: Request, res: Response) {
+    let nodesList = manager.nodes.getAllNodes();
 
-    if (!id || !url) {
-      return res.status(400).json({
-        success: false,
-        message: "Node 'id' ve 'url' bilgisi zorunludur!"
+    // GARANTİ KONTROLÜ: Eğer liste boşsa Master Node'u anında hafızaya yeniden kaydet
+    if (!nodesList || nodesList.length === 0) {
+      manager.nodes.registerNode({
+        id: "master-node-1",
+        name: "GooberCraft Master Node",
+        url: "http://localhost:10000",
+        maxBots: 10
       });
+      nodesList = manager.nodes.getAllNodes();
     }
 
-    const node = manager.nodes.registerNode({
-      id,
-      name,
-      url,
-      maxBots: maxBots ? Number(maxBots) : 10
-    });
-
-    return res.json({
-      success: true,
-      message: `Node '${node.id}' başarıyla kaydedildi.`,
-      node
-    });
-  }
-
-  public static getNodes(req: Request, res: Response) {
-    const nodesList = manager.nodes.getAllNodes();
-    
-    // Hem { success: true, nodes: [...] } hem de esneklik için
     return res.json({
       success: true,
       count: nodesList.length,
-      nodes: nodesList,
-      data: nodesList // Frontend 'data' parametresi bekliyorsa çökmemesi için
+      nodes: nodesList
     });
   }
 }

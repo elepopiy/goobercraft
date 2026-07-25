@@ -1,74 +1,69 @@
 import { Request, Response } from "express";
-import { NodeController } from "./NodeController";
 import { createBot } from "../../createBot";
-import { manager } from "../../managers"; // Doğru import en üstte mevcut!
+import { manager } from "../../managers";
 
 export class BotController {
-    
-    public static getBots(req: Request, res: Response) {
-        // En üstte import edilen manager kullanılıyor (require temizlendi)
-        res.json({
-            success: true,
-            bots: manager.bots.getAll()
-        });
+  // BOT OLUŞTURMA
+  public static async create(req: Request, res: Response) {
+    const { username, host, port, ownerToken } = req.body;
+
+    if (!username || !host) {
+      return res.status(400).json({ success: false, message: "Kullanıcı adı ve IP zorunludur!" });
     }
 
-    public static async createBot(req: Request, res: Response) {
-        const { username, host, port } = req.body;
+    try {
+      const bot = await createBot({ username, host, port });
+      
+      // Sahiplik token'ını bot verisine işle
+      const botData = manager.bots.get(bot.getId());
+      if (botData) {
+        (botData as any).ownerToken = ownerToken || "anonymous";
+      }
 
-        if (!host) {
-            return res.status(400).json({
-                success: false,
-                message: "Minecraft Sunucu IP/Host adresi zorunludur!"
-            });
-        }
+      return res.json({
+        success: true,
+        message: `'${username}' botu başarıyla başlatıldı!`,
+        botId: bot.getId()
+      });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
+  }
 
-        try {
-            // Gerçek GooberCraft Bot'unu oluştur ve başlat.
-            const bot = await createBot({
-                username: username || `Goob_${Math.floor(Math.random() * 1000)}`,
-                host: host,
-                port: port ? Number(port) : 25565
-            });
+  // BOT DURDURMA / SİLME
+  public static async stop(req: Request, res: Response) {
+    const { id, ownerToken } = req.body;
 
-            const assignedNodeId = bot.getNodeId() ?? "local";
-
-            res.json({
-                success: true,
-                message: `'${bot.username}' botu başarıyla '${assignedNodeId}' node'unda başlatıldı!`,
-                bot: {
-                    id: bot.getId(),
-                    username: bot.username,
-                    nodeId: assignedNodeId,
-                    online: true,
-                    createdAt: bot.getCreatedAt()
-                }
-            });
-        } catch (error: any) {
-            console.error("[BotController] Bot oluşturma hatası:", error);
-            res.status(500).json({
-                success: false,
-                message: error.message || "Bot başlatılırken bir hata oluştu."
-            });
-        }
+    if (!id) {
+      return res.status(400).json({ success: false, message: "Bot ID zorunludur!" });
     }
 
-    public static stopBot(req: Request, res: Response) {
-        const { id } = req.body;
-
-        // En üstte import edilen manager kullanılıyor (require temizlendi)
-        const botState = manager.bots.get(id);
-        if (botState) {
-            manager.bots.remove(id);
-            return res.json({
-                success: true,
-                message: "Bot başarıyla durduruldu."
-            });
-        }
-
-        res.json({
-            success: false,
-            message: "Bot bulunamadı."
-        });
+    const botData = manager.bots.get(id);
+    if (!botData) {
+      return res.status(404).json({ success: false, message: "Bot bulunamadı veya zaten çevrimdışı." });
     }
+
+    // SAHİPLİK KONTROLÜ
+    if ((botData as any).ownerToken && (botData as any).ownerToken !== ownerToken) {
+      return res.status(403).json({
+        success: false,
+        message: "⛔ Bu botu sadece oluşturan kişi durdurabilir!"
+      });
+    }
+
+    // Botu durdur ve ağdan çıkar
+    manager.bots.remove(id);
+
+    return res.json({
+      success: true,
+      message: `'${botData.username}' botu başarıyla durduruldu.`
+    });
+  }
+
+  public static getBots(req: Request, res: Response) {
+    return res.json({
+      success: true,
+      bots: manager.bots.getAll()
+    });
+  }
 }
