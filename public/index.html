@@ -1597,36 +1597,10 @@
       logs: []
     };
 
-    // Sistem Botu oranı: her node kapasitesinin %10'u kadar korumalı sistem botu
-    const SYSTEM_BOT_RATIO = 0.1;
-
-    function getSystemBotCount(node) {
-      return Math.floor((node.maxBots || 0) * SYSTEM_BOT_RATIO);
-    }
-
-    // Bu botlar backend'e hiç gönderilmez; sadece görüntü/kapasite amaçlı, sabit ve silinemez
-    function getSystemBotsForNode(node) {
-      const count = getSystemBotCount(node);
-      const bots = [];
-      for (let i = 0; i < count; i++) {
-        bots.push({
-          id: `sys_${node.id}_${i}`,
-          nodeId: node.id,
-          username: `SYS-Guardian-${String(i + 1).padStart(2, '0')}`,
-          host: 'internal.system',
-          ownerToken: 'SYSTEM',
-          isSystem: true
-        });
-      }
-      return bots;
-    }
-
-    // Bir node'a ait TÜM botları döner: korumalı sistem botları + backend'den gelen gerçek botlar
+    // Sistem botları artık backend tarafından üretiliyor ve /api/bots yanıtında
+    // isSystem:true olarak dönüyor - burada hiçbir şey uydurulmuyor.
     function getAllBotsForNode(nodeId) {
-      const node = state.nodes.find(n => n.id === nodeId);
-      if (!node) return [];
-      const realBots = state.bots.filter(b => (b.nodeId || b.node_id) === nodeId);
-      return [...getSystemBotsForNode(node), ...realBots];
+      return state.bots.filter(b => (b.nodeId || b.node_id) === nodeId);
     }
 
     /* --------------------------------------------------------------------------
@@ -1792,8 +1766,9 @@
     async function stopBot(botId, username, event) {
       if(event) event.stopPropagation(); // Prevent opening inspector
 
-      // System-protected bots can never be terminated
-      if(String(botId).startsWith('sys_')) return;
+      // System-protected bots can never be terminated - checked against real backend data
+      const targetBot = state.bots.find(b => b.id === botId);
+      if(targetBot && targetBot.isSystem === true) return;
 
       if(!confirm(`Are you sure you want to terminate instance '${username}'?`)) return;
 

@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { createBot } from "../../createBot";
 import { manager } from "../../managers";
 import { nodesList } from "../routes/nodes";
+import { getSystemBotCount, getSystemBotsForNode, isSystemBotId } from "../../utils/systemBots";
 
 export class BotController {
   public static async create(req: Request, res: Response) {
@@ -17,7 +18,7 @@ export class BotController {
 
     // 2. KİŞİ BAŞI BOT LİMİTİ KONTROLÜ (Maksimum 3 Bot)
     const userBotsCount = allBots.filter((b: any) => b.ownerToken === userToken).length;
-    
+
     if (userBotsCount >= 3) {
       return res.status(403).json({
         success: false,
@@ -25,12 +26,15 @@ export class BotController {
       });
     }
 
-    // 3. EN BOŞ RACK'İ BULMA (Yük Dengeleme)
+    // 3. EN BOŞ RACK'İ BULMA (Yük Dengeleme) - sistem botları da kapasiteye dahil edilir
     let selectedNode: any = null;
     let minBotCount = Infinity;
 
     for (const node of nodesList) {
-      const nodeBotsCount = allBots.filter((b: any) => b.nodeId === node.id || b.node_id === node.id).length;
+      const realBotsInNode = allBots.filter((b: any) => b.nodeId === node.id || b.node_id === node.id).length;
+      const systemBotsInNode = getSystemBotCount(node.maxBots);
+      const nodeBotsCount = realBotsInNode + systemBotsInNode;
+
       if (nodeBotsCount < node.maxBots && nodeBotsCount < minBotCount) {
         minBotCount = nodeBotsCount;
         selectedNode = node;
@@ -41,14 +45,14 @@ export class BotController {
     if (!selectedNode) {
       return res.status(400).json({
         success: false,
-        message: "⛔ Tüm DataCenter Rack'leri tamamen dolu (100/100)! Biri bot çıkarana kadar yeni bot eklenemez."
+        message: "⛔ Tüm DataCenter Rack'leri tamamen dolu! Biri bot çıkarana kadar yeni bot eklenemez."
       });
     }
 
     try {
       // Botu seçilen en boş Rack üzerine konuşlandır
       const botInstance = await createBot({ username, host, port });
-      
+
       // Bot ID tespiti
       const targetId = typeof botInstance.getId === 'function' ? botInstance.getId() : (botInstance as any).id;
       const botData = manager.bots.get(targetId) || botInstance;
@@ -78,6 +82,14 @@ export class BotController {
 
     if (!id) {
       return res.status(400).json({ success: false, message: "Bot ID zorunludur!" });
+    }
+
+    // 0. SİSTEM BOTU KORUMASI - id ne olursa olsun, ne istemciden ne başka bir yoldan durdurulamaz
+    if (isSystemBotId(id)) {
+      return res.status(403).json({
+        success: false,
+        message: "⛔ Bu bir Sistem Botu! Sistem korumalı botlar durdurulamaz veya silinemez."
+      });
     }
 
     // 1. Botu ID üzerinden bul
@@ -133,19 +145,22 @@ export class BotController {
     }
   }
 
-  // BOTS LİSTELEME
+  // BOTS LİSTELEME - gerçek botlar + backend'in ürettiği sistem botları (isSystem:true)
   public static getBots(req: Request, res: Response) {
-    const bots = manager.bots.getAll().map((b: any) => ({
+    const realBots = manager.bots.getAll().map((b: any) => ({
       id: b.id || b._id || b.botId,
       username: b.username,
       host: b.host,
       nodeId: b.nodeId || b.node_id,
-      ownerToken: b.ownerToken
+      ownerToken: b.ownerToken,
+      isSystem: false
     }));
+
+    const systemBots = nodesList.flatMap((node: any) => getSystemBotsForNode(node));
 
     return res.json({
       success: true,
-      bots: bots
+      bots: [...systemBots, ...realBots]
     });
   }
 }
