@@ -8,18 +8,21 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Public klasörünü statik dosya olarak sun
-app.use(express.static(path.join(__dirname, "../public")));
+// Projenin çalıştığı KÖK DİZİNİ (process.cwd()) baz alarak public klasörünü bulur
+const publicPath = path.join(process.cwd(), "public");
+
+// Public klasörünü statik servis et
+app.use(express.static(publicPath));
 
 app.use("/api", api);
 
-// Kök dizinde Dashboard HTML'ini gönder
+// Kök dizinde index.html gönder
 app.get("/", (_, res) => {
-    res.sendFile(path.join(__dirname, "../public/index.html"));
+    res.sendFile(path.join(publicPath, "index.html"));
 });
 
 const PORT = Number(process.env.PORT) || 3000;
 
 app.listen(PORT, () => {
-    console.log(`GooberCraft Master Server listening on http://localhost:${PORT}`);
+    console.log(`GooberCraft Master listening on port ${PORT}`);
 });
