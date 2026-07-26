@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import path from "path";
-import apiRoutes from "./api/router.js"; // Uzantıyı açıkça yaz
+import apiRoutes from "./api/router"; // Uzantıyı açıkça yaz
 import { manager } from "./managers";
 
 const app = express();
