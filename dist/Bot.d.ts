@@ -50,6 +50,9 @@ export declare class Bot {
     private handleProfileChat;
     private handleCombatBehavior;
     private handleBuildBehavior;
+    private handleCreativeBuild;
+    private detectNeededItem;
+    private findInventoryItem;
     private handleChatBehavior;
     look(yaw: number, pitch: number, force?: boolean): void;
     lookAt(point: Vec3): void;

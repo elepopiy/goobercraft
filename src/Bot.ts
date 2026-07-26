@@ -18,6 +18,18 @@ import type { Goal } from "./pathfinder/types";
 import { parseBotProfileAction, type BotProfileAction } from "./utils/botProfiles";
 import { BotProfile } from "./utils/types";
 
+const CREATIVE_BUILD_ITEMS = [
+  "minecraft:stone",
+  "minecraft:dirt",
+  "minecraft:oak_planks",
+  "minecraft:glass",
+  "minecraft:torch",
+  "minecraft:crafting_table",
+  "minecraft:pickaxe",
+  "minecraft:axe",
+  "minecraft:shovel"
+];
+
 /**
  * GooberCraft ana Bot API sınıfı.
  *
@@ -203,7 +215,52 @@ export class Bot {
   private handleBuildBehavior(detail: string): void {
     const position = this.position.offset(0, 0, 1);
     this.chat(`Yapacağım: ${detail}`);
+
+    if (this.core.login.gamemode === 1 || this.core.login.gamemode === 3) {
+      this.handleCreativeBuild(detail, position);
+      return;
+    }
+
     this.placeBlock(position, new Vec3(0, 1, 0));
+  }
+
+  private handleCreativeBuild(detail: string, position: Vec3): void {
+    const targetItemName = this.detectNeededItem(detail);
+    if (targetItemName) {
+      const equipped = this.core.inventoryManager.equip(targetItemName, "hand");
+      if (equipped) {
+        this.chat(`Creative modda ${targetItemName} bulup hazırladım.`);
+      }
+    }
+
+    this.placeBlock(position, new Vec3(0, 1, 0));
+  }
+
+  private detectNeededItem(detail: string): string | null {
+    const lower = detail.toLowerCase();
+    if (lower.includes("duvar") || lower.includes("blok") || lower.includes("kule")) {
+      return this.findInventoryItem(["minecraft:stone", "minecraft:dirt", "minecraft:oak_planks"]);
+    }
+    if (lower.includes("cam") || lower.includes("pencere") || lower.includes("glass")) {
+      return this.findInventoryItem(["minecraft:glass"]);
+    }
+    if (lower.includes("ışık") || lower.includes("torch")) {
+      return this.findInventoryItem(["minecraft:torch"]);
+    }
+    if (lower.includes("masa") || lower.includes("craft")) {
+      return this.findInventoryItem(["minecraft:crafting_table"]);
+    }
+    return this.findInventoryItem(CREATIVE_BUILD_ITEMS);
+  }
+
+  private findInventoryItem(names: string[]): string | null {
+    for (const name of names) {
+      const item = this.core.inventoryManager.inventory.findItemByName(name);
+      if (item?.present) {
+        return name;
+      }
+    }
+    return null;
   }
 
   private handleChatBehavior(detail: string): void {
