@@ -1,24 +1,24 @@
 import express from "express";
 import cors from "cors";
 import path from "path";
-import api from "./api/routes";
-import { manager } from "./managers"; // Global manager importu
+import apiRoutes from "./api/routes";
+import { manager } from "./managers";
 
 const app = express();
 
+// Middleware Ayarları
 app.use(cors());
-app.use(express.json());
+app.use(express.json()); // Worker'dan gelen JSON body'yi okumak için ŞART
 
-// ============================================================
-// 1. KRİTİK DÜZELTME: /api YOLU STATİK DOSYALARDAN ÖNE ALINDI!
-// ============================================================
-app.use("/api", api);
+// 🚨 KRİTİK SIRALAMA:
+// 1. API rotaları statik dosyalardan ÖNCE tanımlanmalı!
+app.use("/api", apiRoutes);
 
-// 2. Statik dosyalar ve web arayüzü servis paneli
+// 2. Dashboard ve Web Arayüzü Statik Dosyaları
 const publicPath = path.join(process.cwd(), "public");
 app.use(express.static(publicPath));
 
-// 3. Fallback Route: API dışındaki bilinmeyen yollarda index.html döndür
+// 3. SPA Fallback: API dışındaki tüm isteklere Dashboard (index.html) bas
 app.get("*", (_, res) => {
     res.sendFile(path.join(publicPath, "index.html"));
 });
@@ -26,9 +26,9 @@ app.get("*", (_, res) => {
 const PORT = Number(process.env.PORT) || 10000;
 
 app.listen(PORT, () => {
-    console.log(`GooberCraft Master listening on port ${PORT}`);
+    console.log(`[GooberCraft Master] Port ${PORT} üzerinde aktif.`);
 
-    // Sunucu ayağa kalktığında varsayılan Master Node'u sisteme kaydet
+    // Master sunucu ayağa kalktığında ana node'u kaydet
     manager.nodes.registerNode({
         id: "master-node-1",
         name: "Master Node (Render)",
@@ -36,5 +36,5 @@ app.listen(PORT, () => {
         maxBots: 10
     });
 
-    console.log("[GooberCraft:Master] Varsayılan Node sisteme başarıyla kaydedildi.");
+    console.log("[GooberCraft:Master] Varsayılan Master Node sisteme kaydedildi.");
 });
