@@ -17,6 +17,7 @@ import { Item } from "./inventory/Item";
 import type { Goal } from "./pathfinder/types";
 import { parseBotProfileAction, type BotProfileAction } from "./utils/botProfiles";
 import { BotProfile } from "./utils/types";
+import { askGroq } from "./utils/groq";
 
 const CREATIVE_BUILD_ITEMS = [
   "minecraft:stone",
@@ -41,6 +42,7 @@ export class Bot {
   private readonly id: string;
   private readonly createdAt: number;
   private profile: BotProfile;
+  private groqApiKey?: string;
   
   private nodeId: string | null = null;
   private connected = false;
@@ -51,6 +53,7 @@ export class Bot {
     this.core = new BotCore(options);
     this.createdAt = Date.now();
     this.profile = options.profile ?? "stable";
+    this.groqApiKey = (options as any).groqApiKey;
 
     this.core.bus.on("chat", (message: any) => this.handleProfileChat(message));
   }
@@ -206,22 +209,35 @@ export class Bot {
   }
 
   private handleCombatBehavior(): void {
-    const target = this.nearestEntity((entity) => entity.isPlayer || entity.type !== -1);
+    const target = this.findBestCombatTarget();
     if (!target) return;
 
-    this.lookAt(target.position);
-    this.move("forward", true);
-    this.sprint(true);
-    this.attack(target.id);
+    const delta = target.position.minus(this.position);
+    const distance = Math.sqrt(delta.x * delta.x + delta.z * delta.z);
 
-    setTimeout(() => {
+    this.lookAt(target.position);
+    if (distance > 3) {
+      this.move("forward", true);
+      this.sprint(true);
+      this.goto({
+        isEnd: (pos: Vec3) => pos.distanceTo(target.position) <= 2.5,
+        heuristic: (pos: Vec3) => pos.distanceTo(target.position),
+      } as any);
+    } else {
       this.move("forward", false);
       this.sprint(false);
-    }, 250);
+      this.attack(target.id);
+    }
+  }
+
+  private findBestCombatTarget(): Entity | null {
+    const candidates = this.entities.filter((entity) => entity.isPlayer || entity.type !== -1);
+    return candidates.sort((a, b) => this.position.distanceTo(a.position) - this.position.distanceTo(b.position))[0] ?? null;
   }
 
   private handleBuildBehavior(detail: string): void {
-    const position = this.position.offset(0, 0, 1);
+    const buildTarget = this.findBuildPosition(detail);
+    const position = buildTarget ?? this.position.offset(0, 0, 1);
     this.chat(`Yapacağım: ${detail}`);
 
     if (this.core.login.gamemode === 1 || this.core.login.gamemode === 3) {
@@ -232,12 +248,33 @@ export class Bot {
     this.placeBlock(position, new Vec3(0, 1, 0));
   }
 
-  private handleCreativeBuild(detail: string, position: Vec3): void {
+  private findBuildPosition(detail: string): Vec3 | null {
+    const ray = this.raycast(6);
+    if (ray?.blockPosition) {
+      return ray.blockPosition.offset(0, 1, 0);
+    }
+
+    const candidate = this.position.offset(0, 0, 1);
+    if (detail.toLowerCase().includes("ev") || detail.toLowerCase().includes("kule")) {
+      return candidate;
+    }
+    return null;
+  }
+
+  private async handleCreativeBuild(detail: string, position: Vec3): Promise<void> {
     const targetItemName = this.detectNeededItem(detail);
     if (targetItemName) {
       const equipped = this.core.inventoryManager.equip(targetItemName, "hand");
       if (equipped) {
         this.chat(`Creative modda ${targetItemName} bulup hazırladım.`);
+      }
+    }
+
+    if (this.groqApiKey) {
+      const prompt = `Builder botu için kısa bir plan üret: ${detail}. Sadece bir cümle yaz.`;
+      const plan = await askGroq(prompt, this.groqApiKey);
+      if (plan) {
+        this.chat(plan);
       }
     }
 
@@ -271,7 +308,14 @@ export class Bot {
     return null;
   }
 
-  private handleChatBehavior(detail: string): void {
+  private async handleChatBehavior(detail: string): Promise<void> {
+    if (this.groqApiKey) {
+      const answer = await askGroq(`Kısa ve doğal bir cevap ver: ${detail}`, this.groqApiKey);
+      if (answer) {
+        this.chat(answer);
+        return;
+      }
+    }
     this.chat(`Ben ${this.username || "bot"} ve şu an ${detail} hakkında konuşuyorum.`);
   }
 
