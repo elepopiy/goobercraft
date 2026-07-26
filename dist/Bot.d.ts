@@ -17,6 +17,7 @@ export declare class Bot {
     private readonly id;
     private readonly createdAt;
     private profile;
+    private groqApiKey?;
     private nodeId;
     private connected;
     private destroyed;
@@ -49,7 +50,9 @@ export declare class Bot {
     getProfile(): BotProfile;
     private handleProfileChat;
     private handleCombatBehavior;
+    private findBestCombatTarget;
     private handleBuildBehavior;
+    private findBuildPosition;
     private handleCreativeBuild;
     private detectNeededItem;
     private findInventoryItem;

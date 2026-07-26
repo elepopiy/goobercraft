@@ -8,6 +8,7 @@ const vec3_1 = require("vec3");
 const BotCore_1 = require("./core/BotCore");
 const crypto_1 = __importDefault(require("crypto"));
 const botProfiles_1 = require("./utils/botProfiles");
+const groq_1 = require("./utils/groq");
 const CREATIVE_BUILD_ITEMS = [
     "minecraft:stone",
     "minecraft:dirt",
@@ -30,6 +31,7 @@ class Bot {
     id;
     createdAt;
     profile;
+    groqApiKey;
     nodeId = null;
     connected = false;
     destroyed = false;
@@ -38,6 +40,7 @@ class Bot {
         this.core = new BotCore_1.BotCore(options);
         this.createdAt = Date.now();
         this.profile = options.profile ?? "stable";
+        this.groqApiKey = options.groqApiKey;
         this.core.bus.on("chat", (message) => this.handleProfileChat(message));
     }
     // ============================================================
@@ -156,14 +159,33 @@ class Bot {
         }
     }
     handleCombatBehavior() {
-        const target = this.nearestEntity((entity) => entity.isPlayer || entity.type !== -1);
+        const target = this.findBestCombatTarget();
         if (!target)
             return;
+        const delta = target.position.minus(this.position);
+        const distance = Math.sqrt(delta.x * delta.x + delta.z * delta.z);
         this.lookAt(target.position);
-        this.attack(target.id);
+        if (distance > 3) {
+            this.move("forward", true);
+            this.sprint(true);
+            this.goto({
+                isEnd: (pos) => pos.distanceTo(target.position) <= 2.5,
+                heuristic: (pos) => pos.distanceTo(target.position),
+            });
+        }
+        else {
+            this.move("forward", false);
+            this.sprint(false);
+            this.attack(target.id);
+        }
+    }
+    findBestCombatTarget() {
+        const candidates = this.entities.filter((entity) => entity.isPlayer || entity.type !== -1);
+        return candidates.sort((a, b) => this.position.distanceTo(a.position) - this.position.distanceTo(b.position))[0] ?? null;
     }
     handleBuildBehavior(detail) {
-        const position = this.position.offset(0, 0, 1);
+        const buildTarget = this.findBuildPosition(detail);
+        const position = buildTarget ?? this.position.offset(0, 0, 1);
         this.chat(`Yapacağım: ${detail}`);
         if (this.core.login.gamemode === 1 || this.core.login.gamemode === 3) {
             this.handleCreativeBuild(detail, position);
@@ -171,12 +193,30 @@ class Bot {
         }
         this.placeBlock(position, new vec3_1.Vec3(0, 1, 0));
     }
-    handleCreativeBuild(detail, position) {
+    findBuildPosition(detail) {
+        const ray = this.raycast(6);
+        if (ray?.blockPosition) {
+            return ray.blockPosition.offset(0, 1, 0);
+        }
+        const candidate = this.position.offset(0, 0, 1);
+        if (detail.toLowerCase().includes("ev") || detail.toLowerCase().includes("kule")) {
+            return candidate;
+        }
+        return null;
+    }
+    async handleCreativeBuild(detail, position) {
         const targetItemName = this.detectNeededItem(detail);
         if (targetItemName) {
             const equipped = this.core.inventoryManager.equip(targetItemName, "hand");
             if (equipped) {
                 this.chat(`Creative modda ${targetItemName} bulup hazırladım.`);
+            }
+        }
+        if (this.groqApiKey) {
+            const prompt = `Builder botu için kısa bir plan üret: ${detail}. Sadece bir cümle yaz.`;
+            const plan = await (0, groq_1.askGroq)(prompt, this.groqApiKey);
+            if (plan) {
+                this.chat(plan);
             }
         }
         this.placeBlock(position, new vec3_1.Vec3(0, 1, 0));
@@ -206,7 +246,14 @@ class Bot {
         }
         return null;
     }
-    handleChatBehavior(detail) {
+    async handleChatBehavior(detail) {
+        if (this.groqApiKey) {
+            const answer = await (0, groq_1.askGroq)(`Kısa ve doğal bir cevap ver: ${detail}`, this.groqApiKey);
+            if (answer) {
+                this.chat(answer);
+                return;
+            }
+        }
         this.chat(`Ben ${this.username || "bot"} ve şu an ${detail} hakkında konuşuyorum.`);
     }
     // ============================================================
