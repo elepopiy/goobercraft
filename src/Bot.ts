@@ -208,8 +208,16 @@ export class Bot {
   private handleCombatBehavior(): void {
     const target = this.nearestEntity((entity) => entity.isPlayer || entity.type !== -1);
     if (!target) return;
+
     this.lookAt(target.position);
+    this.move("forward", true);
+    this.sprint(true);
     this.attack(target.id);
+
+    setTimeout(() => {
+      this.move("forward", false);
+      this.sprint(false);
+    }, 250);
   }
 
   private handleBuildBehavior(detail: string): void {

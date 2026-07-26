@@ -23,15 +23,15 @@ export function normalizeBotProfile(profile?: string | BotProfile): BotProfile {
 
 export function parseBotProfileAction(profile: string | BotProfile | undefined, message: string): BotProfileAction {
   const normalized = normalizeBotProfile(profile);
+  const trimmed = message.trim();
 
   if (normalized === "combat") {
     return { type: "combat" };
   }
 
   if (normalized === "builder") {
-    const trimmed = message.trim();
-    if (trimmed.startsWith("!yap")) {
-      const detail = trimmed.slice(4).trim() || "kule";
+    if (trimmed.startsWith("!yap") || trimmed.startsWith("!build") || trimmed.includes("yap")) {
+      const detail = trimmed.replace(/^!yap|^!build/i, "").trim() || "taş ev";
       return { type: "build", detail };
     }
     return { type: "stable" };
