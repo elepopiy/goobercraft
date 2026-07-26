@@ -3,7 +3,7 @@ import { manager } from "../managers";
 
 const router = Router();
 
-// GET: /api/nodes -> Web panelinin aktif tüm Node'ları çekmesi için
+// GET: /api/nodes -> Web panelinin aktif Node listesini çekmesi için
 router.get("/nodes", (_, res) => {
     return res.json({ 
         success: true, 
@@ -11,29 +11,30 @@ router.get("/nodes", (_, res) => {
     });
 });
 
-// POST: /api/nodes/register -> Worker'ların Master'a kaydolduğu kritik nokta
+// POST: /api/nodes/register -> Worker'ların kayıt olduğu adres
+// DİKKAT: app.use("/api", ...) kullanıldığı için burada /api yazmıyoruz, sadece /nodes/register yazıyoruz!
 router.post("/nodes/register", (req, res) => {
     const { id, name, url, maxBots } = req.body;
 
     if (!id || !url) {
         return res.status(400).json({ 
-            error: "Eksik Node Bilgisi! 'id' ve 'url' alanları zorunludur." 
+            error: "Eksik bilgi! 'id' ve 'url' zorunludur." 
         });
     }
 
-    // Worker'ı Master Cluster yöneticisine kaydet
+    // Node'u sisteme kaydet
     manager.nodes.registerNode({
         id,
-        name: name || "Worker Node (Render)",
+        name: name || `Worker (${id})`,
         url,
         maxBots: maxBots || 10
     });
 
-    console.log(`[GooberCraft:Master] Yeni Worker bağlandı: ${name} (${url})`);
+    console.log(`[GooberCraft:Master] 🎉 Yeni Worker başarıyla kaydedildi: ${name} (${url})`);
 
     return res.json({
         success: true,
-        message: `${name} başarıyla Master Cluster'a kaydedildi.`
+        message: `${name} Master Cluster'a eklendi.`
     });
 });
 

@@ -2,13 +2,13 @@
   "name": "goobercraft",
   "version": "0.1.7",
   "description": "Mineflayer'dan bağımsız TypeScript Minecraft Java Edition bot kütüphanesi. minecraft-protocol ve prismarine ekosistemi üzerine kuruludur.",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/server.js",
+  "types": "dist/server.d.ts",
   "license": "MIT",
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "dev": "ts-node examples/hello.ts",
+    "dev": "ts-node src/server.ts",
     "start": "node dist/server.js"
   },
   "dependencies": {
