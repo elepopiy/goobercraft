@@ -9,16 +9,17 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Projenin çalıştığı KÖK DİZİNİ (process.cwd()) baz alarak public klasörünü bulur
-const publicPath = path.join(process.cwd(), "public");
-
-// Public klasörünü statik servis et
-app.use(express.static(publicPath));
-
+// ============================================================
+// 1. KRİTİK DÜZELTME: /api YOLU STATİK DOSYALARDAN ÖNE ALINDI!
+// ============================================================
 app.use("/api", api);
 
-// Kök dizinde index.html gönder
-app.get("/", (_, res) => {
+// 2. Statik dosyalar ve web arayüzü servis paneli
+const publicPath = path.join(process.cwd(), "public");
+app.use(express.static(publicPath));
+
+// 3. Fallback Route: API dışındaki bilinmeyen yollarda index.html döndür
+app.get("*", (_, res) => {
     res.sendFile(path.join(publicPath, "index.html"));
 });
 
