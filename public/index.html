@@ -1516,11 +1516,12 @@
           </div>
           <div style="flex: 1;">
             <label>AI PROFILE</label>
-            <select style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border-light); padding: 1rem; border-radius: var(--radius-md); color: white; outline: none; font-family: 'JetBrains Mono'; font-size: 1rem;">
+            <select id="botProfile" style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border-light); padding: 1rem; border-radius: var(--radius-md); color: white; outline: none; font-family: 'JetBrains Mono'; font-size: 1rem;">
               <option value="standard">Standard Worker</option>
               <option value="combat">Combat AI</option>
               <option value="builder">Builder Logic</option>
               <option value="chatter">LLM Chatterbox</option>
+              <option value="stable">Stable Keeper</option>
             </select>
           </div>
         </div>
@@ -1893,6 +1894,7 @@
       const username = document.getElementById('botUsername').value.trim();
       const host = document.getElementById('botHost').value.trim();
       const port = parseInt(document.getElementById('botPort').value, 10) || 25565;
+      const profile = document.getElementById('botProfile').value || 'stable';
 
       submitBtn.disabled = true;
       submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> ALLOCATING RESOURCES...';
@@ -1901,7 +1903,7 @@
         const res = await fetch(`${API_BASE}/api/bots/create`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, host, port, ownerToken: MY_OWNER_TOKEN })
+          body: JSON.stringify({ username, host, port, ownerToken: MY_OWNER_TOKEN, profile })
         });
 
         if (!res.ok && res.status !== 400 && res.status !== 403) {

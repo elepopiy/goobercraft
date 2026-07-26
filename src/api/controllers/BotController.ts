@@ -6,7 +6,7 @@ import { getSystemBotCount, getSystemBotsForNode, isSystemBotId } from "../../ut
 
 export class BotController {
   public static async create(req: Request, res: Response) {
-    const { username, host, port, ownerToken } = req.body;
+    const { username, host, port, ownerToken, profile } = req.body;
 
     // 1. Temel Girdi Kontrolü
     if (!username || !host) {
@@ -61,7 +61,7 @@ export class BotController {
 
     try {
       // Botu seçilen en boş Rack üzerine konuşlandır
-      const botInstance = await createBot({ username, host, port });
+      const botInstance = await createBot({ username, host, port, profile });
 
       // Bot ID tespiti
       const targetId = typeof botInstance.getId === 'function' ? botInstance.getId() : (botInstance as any).id;
@@ -73,6 +73,7 @@ export class BotController {
         (botData as any).ownerToken = userToken;
         (botData as any).username = username;
         (botData as any).host = host;
+        (botData as any).profile = profile || "stable";
       }
 
       return res.json({

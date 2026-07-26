@@ -4,7 +4,7 @@ import { BotOptions, ResolvedBotOptions } from "./utils/types";
 
 const DEFAULTS: Omit<
   ResolvedBotOptions,
-  "host" | "username" | "password"
+  "host" | "username" | "password" | "profile"
 > = {
   port: 25565,
   auth: "offline",
@@ -57,6 +57,7 @@ function resolveOptions(options: BotOptions): ResolvedBotOptions {
     viewDistance: options.viewDistance ?? DEFAULTS.viewDistance,
     checkTimeoutInterval: options.checkTimeoutInterval ?? DEFAULTS.checkTimeoutInterval,
     respawnOnDeath: options.respawnOnDeath ?? DEFAULTS.respawnOnDeath,
+    profile: options.profile ?? "stable",
   };
 }
 

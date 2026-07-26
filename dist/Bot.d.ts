@@ -5,6 +5,7 @@ import { Entity } from "./entity/Entity";
 import { Window } from "./inventory/Window";
 import { Item } from "./inventory/Item";
 import type { Goal } from "./pathfinder/types";
+import { BotProfile } from "./utils/types";
 /**
  * GooberCraft ana Bot API sınıfı.
  *
@@ -15,6 +16,7 @@ export declare class Bot {
     private readonly core;
     private readonly id;
     private readonly createdAt;
+    private profile;
     private nodeId;
     private connected;
     private destroyed;
@@ -43,6 +45,12 @@ export declare class Bot {
     stopPath(): void;
     chat(message: string): void;
     chatCommand(command: string): void;
+    setProfile(profile: BotProfile): void;
+    getProfile(): BotProfile;
+    private handleProfileChat;
+    private handleCombatBehavior;
+    private handleBuildBehavior;
+    private handleChatBehavior;
     look(yaw: number, pitch: number, force?: boolean): void;
     lookAt(point: Vec3): void;
     swingArm(hand?: "right" | "left"): void;

@@ -1,5 +1,6 @@
 import { Vec3 } from "vec3";
 export type AuthMode = "offline" | "microsoft" | "mojang";
+export type BotProfile = "standard" | "combat" | "builder" | "chatter" | "stable";
 export interface BotOptions {
     host: string;
     port?: number;
@@ -10,6 +11,7 @@ export interface BotOptions {
     viewDistance?: number;
     checkTimeoutInterval?: number;
     respawnOnDeath?: boolean;
+    profile?: BotProfile;
 }
 export interface ResolvedBotOptions extends Required<Omit<BotOptions, "password">> {
     password?: string;

@@ -4,8 +4,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Bot = void 0;
+const vec3_1 = require("vec3");
 const BotCore_1 = require("./core/BotCore");
 const crypto_1 = __importDefault(require("crypto"));
+const botProfiles_1 = require("./utils/botProfiles");
 /**
  * GooberCraft ana Bot API sınıfı.
  *
@@ -16,6 +18,7 @@ class Bot {
     core;
     id;
     createdAt;
+    profile;
     nodeId = null;
     connected = false;
     destroyed = false;
@@ -23,6 +26,8 @@ class Bot {
         this.id = crypto_1.default.randomUUID();
         this.core = new BotCore_1.BotCore(options);
         this.createdAt = Date.now();
+        this.profile = options.profile ?? "stable";
+        this.core.bus.on("chat", (message) => this.handleProfileChat(message));
     }
     // ============================================================
     // LIFE CYCLE
@@ -117,6 +122,42 @@ class Bot {
     }
     chatCommand(command) {
         this.core.chatManager.sendCommand(command);
+    }
+    setProfile(profile) {
+        this.profile = profile;
+    }
+    getProfile() {
+        return this.profile;
+    }
+    handleProfileChat(message) {
+        const text = message?.text ?? "";
+        const action = (0, botProfiles_1.parseBotProfileAction)(this.profile, text);
+        if (action.type === "combat") {
+            this.handleCombatBehavior();
+            return;
+        }
+        if (action.type === "build") {
+            this.handleBuildBehavior(action.detail);
+            return;
+        }
+        if (action.type === "chat") {
+            this.handleChatBehavior(action.detail);
+        }
+    }
+    handleCombatBehavior() {
+        const target = this.nearestEntity((entity) => entity.isPlayer || entity.type !== -1);
+        if (!target)
+            return;
+        this.lookAt(target.position);
+        this.attack(target.id);
+    }
+    handleBuildBehavior(detail) {
+        const position = this.position.offset(0, 0, 1);
+        this.chat(`Yapacağım: ${detail}`);
+        this.placeBlock(position, new vec3_1.Vec3(0, 1, 0));
+    }
+    handleChatBehavior(detail) {
+        this.chat(`Ben ${this.username || "bot"} ve şu an ${detail} hakkında konuşuyorum.`);
     }
     // ============================================================
     // MOVEMENT

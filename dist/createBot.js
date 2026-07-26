@@ -51,6 +51,7 @@ function resolveOptions(options) {
         viewDistance: options.viewDistance ?? DEFAULTS.viewDistance,
         checkTimeoutInterval: options.checkTimeoutInterval ?? DEFAULTS.checkTimeoutInterval,
         respawnOnDeath: options.respawnOnDeath ?? DEFAULTS.respawnOnDeath,
+        profile: options.profile ?? "stable",
     };
 }
 /**

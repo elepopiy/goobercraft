@@ -7,7 +7,7 @@ const nodes_1 = require("../routes/nodes");
 const systemBots_1 = require("../../utils/systemBots");
 class BotController {
     static async create(req, res) {
-        const { username, host, port, ownerToken } = req.body;
+        const { username, host, port, ownerToken, profile } = req.body;
         // 1. Temel Girdi Kontrolü
         if (!username || !host) {
             return res.status(400).json({ success: false, message: "Kullanıcı adı ve IP zorunludur!" });
@@ -51,7 +51,7 @@ class BotController {
         }
         try {
             // Botu seçilen en boş Rack üzerine konuşlandır
-            const botInstance = await (0, createBot_1.createBot)({ username, host, port });
+            const botInstance = await (0, createBot_1.createBot)({ username, host, port, profile });
             // Bot ID tespiti
             const targetId = typeof botInstance.getId === 'function' ? botInstance.getId() : botInstance.id;
             const botData = managers_1.manager.bots.get(targetId) || botInstance;
@@ -61,6 +61,7 @@ class BotController {
                 botData.ownerToken = userToken;
                 botData.username = username;
                 botData.host = host;
+                botData.profile = profile || "stable";
             }
             return res.json({
                 success: true,
