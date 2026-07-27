@@ -7,11 +7,13 @@ exports.getNodesList = getNodesList;
 const express_1 = require("express");
 const os_1 = __importDefault(require("os"));
 const router = (0, express_1.Router)();
-// 10 Tane Hazır Rack (Node) Tanımlaması — statik iskelet, canlı metrikler her çağrıda hesaplanır
-const baseNodes = Array.from({ length: 10 }, (_, index) => ({
+// Varsayılan olarak tek bir node kullanılır; kapasite 100 bot olacak şekilde ayarlanır.
+const NODE_COUNT = Math.max(1, Number(process.env.NODE_COUNT || 1));
+const MAX_BOTS = Number(process.env.MAX_BOTS || 100);
+const baseNodes = Array.from({ length: NODE_COUNT }, (_, index) => ({
     id: `master-node-${index + 1}`,
-    name: `DataCenter Rack #${index + 1}`,
-    maxBots: 10,
+    name: NODE_COUNT === 1 ? "Render Node" : `DataCenter Rack #${index + 1}`,
+    maxBots: MAX_BOTS,
     online: true,
 }));
 /**

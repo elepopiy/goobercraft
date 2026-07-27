@@ -22,7 +22,7 @@ export class NodeManager {
       name: nodeData.name || nodeData.id,
       url: nodeData.url,
       currentBots: existing ? existing.currentBots : (nodeData.currentBots || 0),
-      maxBots: nodeData.maxBots || 10, // Varsayılan limit 10 bot
+      maxBots: nodeData.maxBots || 100, // Varsayılan limit 100 bot
       online: true,
       lastPing: Date.now()
     };

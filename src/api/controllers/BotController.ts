@@ -17,13 +17,14 @@ export class BotController {
     const isAdmin = manager.users.isAdmin(userToken);
     const allBots = manager.bots.getAll();
 
-    // 2. KİŞİ BAŞI BOT LİMİTİ KONTROLÜ (Maksimum 3 Bot) — admin (core) bu limitten muaftır
+    // 2. KİŞİ BAŞI BOT LİMİTİ KONTROLÜ — admin (core) bu limitten muaftır
     const userBotsCount = allBots.filter((b: any) => b.ownerToken === userToken).length;
+    const maxBotsPerUser = Number(process.env.MAX_BOTS_PER_USER || 100);
 
-    if (!isAdmin && userBotsCount >= 3) {
+    if (!isAdmin && userBotsCount >= maxBotsPerUser) {
       return res.status(403).json({
         success: false,
-        message: "⛔ Bot limitine ulaştınız! Aynı kişi en fazla 3 bot ekleyebilir."
+        message: `⛔ Bot limitine ulaştınız! Aynı kişi en fazla ${maxBotsPerUser} bot ekleyebilir.`
       });
     }
 
@@ -78,7 +79,7 @@ export class BotController {
 
       return res.json({
         success: true,
-        message: `'${username}' botu ${selectedNode.name} üzerine konuşlandırıldı! (${isAdmin ? "admin — limitsiz" : `${userBotsCount + 1}/3 botunuz aktif`})`,
+        message: `'${username}' botu ${selectedNode.name} üzerine konuşlandırıldı! (${isAdmin ? "admin — limitsiz" : `${userBotsCount + 1}/${Number(process.env.MAX_BOTS_PER_USER || 100)} botunuz aktif`})`,
         botId: targetId,
         nodeId: selectedNode.id
       });

@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { manager } from "../managers";
+import apiRoutes from "./routes";
 
 const router = Router();
 
@@ -27,7 +28,7 @@ router.post("/nodes/register", (req, res) => {
         id,
         name: name || `Worker (${id})`,
         url,
-        maxBots: maxBots || 10
+        maxBots: maxBots || 100
     });
 
     console.log(`[GooberCraft:Master] 🎉 Yeni Worker başarıyla kaydedildi: ${name} (${url})`);
@@ -37,5 +38,7 @@ router.post("/nodes/register", (req, res) => {
         message: `${name} Master Cluster'a eklendi.`
     });
 });
+
+router.use(apiRoutes);
 
 export default router;

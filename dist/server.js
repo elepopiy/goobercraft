@@ -17,11 +17,12 @@ app.use("/api", router_1.default);
 // 2. Web Paneli Statik Dosyaları
 const publicPath = path_1.default.join(process.cwd(), "public");
 app.use(express_1.default.static(publicPath));
-// 3. SPA Fallback (Express v5 uyumlu wildcard rotası: '*' yerine '/*')
-app.get("/*", (_, res) => {
+// 3. SPA Fallback
+app.get(/.*/, (_, res) => {
     res.sendFile(path_1.default.join(publicPath, "index.html"));
 });
 const PORT = Number(process.env.PORT) || 10000;
+const MAX_BOTS = Number(process.env.MAX_BOTS || 100);
 app.listen(PORT, () => {
     console.log(`[GooberCraft Master] Port ${PORT} üzerinde aktif.`);
     // Master'ın kendi lokal node'unu kaydet
@@ -29,7 +30,7 @@ app.listen(PORT, () => {
         id: "master-node-1",
         name: "Master Node (Render)",
         url: process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`,
-        maxBots: 10
+        maxBots: MAX_BOTS
     });
 });
 //# sourceMappingURL=server.js.map
