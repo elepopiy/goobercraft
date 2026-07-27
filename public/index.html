@@ -3,221 +3,662 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GooberCraft Builder</title>
+  <title>GooberCraft Control Center v2.8 - Vision & Security</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   <style>
     :root {
       color-scheme: dark;
-      --bg: #050816;
-      --panel: rgba(15, 23, 42, 0.92);
-      --border: rgba(255,255,255,0.12);
-      --text: #f8fafc;
-      --muted: #94a3b8;
-      --accent: #38bdf8;
-      --accent-2: #6366f1;
-      --success: #22c55e;
+      --bg: #030712;
+      --card-bg: rgba(15, 23, 42, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --accent-cyan: #06b6d4;
+      --accent-purple: #8b5cf6;
+      --accent-pink: #ec4899;
+      --text-main: #f8fafc;
+      --text-muted: #64748b;
+      --success: #10b981;
       --danger: #ef4444;
+      --warning: #f59e0b;
     }
-    * { box-sizing: border-box; }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+
     body {
-      margin: 0;
+      background: #030712;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.12) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.12) 0px, transparent 50%);
+      color: var(--text-main);
       min-height: 100vh;
-      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: radial-gradient(circle at top, #14213d 0%, var(--bg) 55%, #02050d 100%);
-      color: var(--text);
-      display: grid;
-      place-items: center;
       padding: 24px;
+      display: flex;
+      justify-content: center;
     }
-    .app {
-      width: min(100%, 980px);
+
+    .dashboard {
+      width: 100%;
+      max-width: 1400px;
       display: grid;
       gap: 20px;
-      grid-template-columns: 1.15fr 0.85fr;
+      grid-template-columns: repeat(12, 1fr);
     }
+
+    header {
+      grid-column: span 12;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 24px;
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+    }
+
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-logo {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+    }
+    .brand-title { font-weight: 800; font-size: 1.2rem; letter-spacing: -0.5px; }
+
+    /* Resource Telemetry Bar */
+    .metrics-grid {
+      grid-column: span 12;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .metric-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .metric-header { display: flex; justify-content: space-between; align-items: center; }
+    .metric-title { font-size: 0.82rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+    .metric-value { font-size: 1.5rem; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
+
+    canvas.sparkline { width: 100%; height: 40px; display: block; }
+
+    /* Layout Sections */
+    .panel-form { grid-column: span 4; }
+    .panel-bots { grid-column: span 8; }
+    .panel-vision { grid-column: span 12; }
+
     .panel {
-      background: var(--panel);
-      border: 1px solid var(--border);
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--card-border);
       border-radius: 20px;
       padding: 24px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
     }
-    h1, h2 { margin: 0 0 8px; }
-    p { color: var(--muted); margin: 0 0 16px; line-height: 1.6; }
-    form { display: grid; gap: 12px; }
-    label { font-size: 0.9rem; color: var(--muted); }
-    input, button {
+
+    .panel-title { font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; justify-content: space-between; }
+
+    form { display: grid; gap: 14px; }
+    .input-group { display: flex; flex-direction: column; gap: 6px; }
+    label { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
+    input {
+      background: rgba(3, 7, 18, 0.6);
+      border: 1px solid var(--card-border);
+      padding: 12px 14px;
+      border-radius: 10px;
+      color: var(--text-main);
+      outline: none;
+      transition: all 0.2s;
+    }
+    input:focus { border-color: var(--accent-cyan); box-shadow: 0 0 12px rgba(6, 182, 212, 0.2); }
+
+    .btn-submit {
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+      color: #fff; font-weight: 700; border: none; padding: 14px; border-radius: 10px;
+      cursor: pointer; transition: transform 0.1s, opacity 0.2s;
+      box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
+    }
+    .btn-submit:hover { opacity: 0.95; transform: translateY(-1px); }
+
+    /* Bot Card Listing */
+    .bot-list { display: flex; flex-direction: column; gap: 12px; max-height: 480px; overflow-y: auto; }
+    .bot-card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--card-border);
+      padding: 16px;
+      border-radius: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .bot-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .bot-info { display: flex; align-items: center; gap: 10px; }
+    .bot-avatar {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+      display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.8rem;
+    }
+
+    .bot-details { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; font-size: 0.8rem; }
+    .bot-details-item { display: flex; flex-direction: column; }
+    .bot-details-label { color: var(--text-muted); font-size: 0.7rem; }
+    .bot-details-val { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--accent-cyan); }
+
+    .bot-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    
+    .btn-view {
+      background: rgba(6, 182, 212, 0.15);
+      border: 1px solid var(--accent-cyan);
+      color: var(--accent-cyan);
+      padding: 6px 14px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; cursor: pointer;
+    }
+    .btn-view:hover { background: var(--accent-cyan); color: #000; }
+
+    .btn-stop {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid var(--danger);
+      color: var(--danger);
+      padding: 6px 14px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; cursor: pointer;
+    }
+    .btn-stop:hover { background: var(--danger); color: #fff; }
+    .btn-stop:disabled { opacity: 0.3; cursor: not-allowed; border-color: var(--text-muted); color: var(--text-muted); }
+
+    /* Bot Vision & HUD Container */
+    .viewport-container {
+      position: relative;
       width: 100%;
-      padding: 12px 14px;
+      height: 380px;
+      background: #000;
       border-radius: 12px;
-      border: 1px solid var(--border);
-      background: rgba(2, 6, 23, 0.7);
-      color: var(--text);
-      font-size: 1rem;
-    }
-    input:focus { outline: 2px solid rgba(56, 189, 248, 0.35); border-color: var(--accent); }
-    button {
-      cursor: pointer;
-      font-weight: 700;
-      background: linear-gradient(90deg, var(--accent), var(--accent-2));
-      border: none;
-      margin-top: 6px;
-    }
-    button:disabled { opacity: 0.7; cursor: wait; }
-    .status {
-      margin-top: 14px;
-      padding: 12px 14px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      font-size: 0.95rem;
-      min-height: 48px;
+      overflow: hidden;
+      border: 1px solid var(--card-border);
       display: flex;
       align-items: center;
-      gap: 8px;
+      justify-content: center;
     }
-    .status.info { color: #bae6fd; background: rgba(14, 116, 144, 0.18); }
-    .status.success { color: #bbf7d0; background: rgba(34, 197, 94, 0.16); }
-    .status.error { color: #fecaca; background: rgba(239, 68, 68, 0.16); }
-    .bot-list { display: grid; gap: 10px; }
-    .bot-item {
-      display: flex; justify-content: space-between; align-items: center;
-      gap: 12px;
-      padding: 12px 14px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,0.03);
+
+    #botCanvas {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
-    .bot-name { font-weight: 700; }
-    .bot-meta { color: var(--muted); font-size: 0.85rem; }
-    .pill {
-      padding: 4px 8px;
-      border-radius: 999px;
-      font-size: 0.78rem;
-      background: rgba(56,189,248,0.16);
-      color: #bae6fd;
-      white-space: nowrap;
+
+    /* HUD Overlay over Bot Screen */
+    .hud-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: radial-gradient(circle at center, transparent 60%, rgba(0,0,0,0.6) 100%);
     }
-    @media (max-width: 800px) {
-      .app { grid-template-columns: 1fr; }
+
+    .hud-top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .hud-badge {
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--card-border);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .hud-crosshair {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 16px; height: 16px;
+      pointer-events: none;
+    }
+    .hud-crosshair::before, .hud-crosshair::after {
+      content: ''; position: absolute; background: rgba(255,255,255,0.6);
+    }
+    .hud-crosshair::before { top: 7px; left: 0; width: 16px; height: 2px; }
+    .hud-crosshair::after { top: 0; left: 7px; width: 2px; height: 16px; }
+
+    .hud-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .target-block-card {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid var(--accent-cyan);
+      padding: 10px 14px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;
+      background: rgba(16, 185, 129, 0.15); color: var(--success);
+    }
+
+    @media (max-width: 960px) {
+      .panel-form, .panel-bots, .panel-vision { grid-column: span 12; }
     }
   </style>
 </head>
 <body>
-  <main class="app">
-    <section class="panel">
-      <h1>Builder Mode</h1>
-      <p>Bu sayfa yalnızca builder bot oluşturma ve izleme odaklıdır.</p>
-      <form id="builderForm">
-        <label for="username">BOT İSMİ</label>
-        <input id="username" name="username" placeholder="Builder_01" required />
-        <label for="host">SUNUCU / IP</label>
-        <input id="host" name="host" placeholder="play.example.com" required />
-        <label for="port">PORT</label>
-        <input id="port" name="port" type="number" value="25565" min="1" max="65535" required />
-        <button id="submitBtn" type="submit">Builder Bot Başlat</button>
-      </form>
-      <div id="status" class="status info">Hazır. Builder botu başlatmak için formu doldur.</div>
+  <div class="dashboard">
+    <header>
+      <div class="brand">
+        <div class="brand-logo"></div>
+        <div class="brand-title">GooberCraft <span style="color:var(--accent-cyan)">Engine v2.8</span></div>
+      </div>
+      <div class="status-badge"><span style="width:8px;height:8px;background:var(--success);border-radius:50%"></span> SİSTEM & TELEMETRİ AKTİF</div>
+    </header>
+
+    <!-- Telemetri Grafikleri -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-title">CPU Kullanımı</span>
+          <span id="cpuText" class="metric-value">0%</span>
+        </div>
+        <canvas id="cpuChart" class="sparkline"></canvas>
+      </div>
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-title">RAM (Bellek)</span>
+          <span id="ramText" class="metric-value">0 MB</span>
+        </div>
+        <canvas id="ramChart" class="sparkline"></canvas>
+      </div>
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-title">GPU / Render Yükü</span>
+          <span id="gpuText" class="metric-value">0%</span>
+        </div>
+        <canvas id="gpuChart" class="sparkline"></canvas>
+      </div>
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-title">İşlem Yükü (Process)</span>
+          <span id="loadText" class="metric-value">0.00</span>
+        </div>
+        <canvas id="loadChart" class="sparkline"></canvas>
+      </div>
+    </div>
+
+    <!-- BOT'S EYE VIEW (Gözünden Canlı Render Canvas) -->
+    <section class="panel panel-vision">
+      <div class="panel-title">
+        <span>👁️ Bot Bakış Açısı & 3D Render (First-Person Viewport)</span>
+        <span id="activeBotTag" style="font-size: 0.8rem; font-family: 'JetBrains Mono'; color: var(--accent-cyan);">SEÇİLİ BOT: YOK</span>
+      </div>
+
+      <div class="viewport-container">
+        <!-- Prismarine Viewer / Stream Canvas -->
+        <canvas id="botCanvas"></canvas>
+
+        <!-- Dynamic HUD Overlay -->
+        <div class="hud-overlay">
+          <div class="hud-top">
+            <div class="hud-badge" id="hudCoords">XYZ: 0.0 / 0.0 / 0.0</div>
+            <div class="hud-badge" id="hudFacing">BATI (YAW: 0°)</div>
+          </div>
+
+          <div class="hud-crosshair"></div>
+
+          <div class="hud-bottom">
+            <div class="target-block-card">
+              <span style="font-size:1.2rem;">🧱</span>
+              <div>
+                <div style="font-size:0.65rem; color:var(--text-muted)">UĞRAŞILAN BLOK / HEDEF</div>
+                <div id="hudTargetBlock" style="font-weight:700; font-size:0.85rem; color:#fff">AIR (Yok)</div>
+              </div>
+            </div>
+
+            <div class="hud-badge" id="hudHandItem" style="border-color: var(--accent-purple);">
+              🖐️ ELDEKİ: Boş
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <section class="panel">
-      <h2>Aktif Builder Botlar</h2>
-      <div id="botList" class="bot-list">Yükleniyor...</div>
+    <!-- Sol: Builder Bot Başlatma -->
+    <section class="panel panel-form">
+      <div class="panel-title">🔨 Yeni Builder Bot Konuşlandır</div>
+      <form id="builderForm">
+        <div class="input-group">
+          <label>BOT İSMİ</label>
+          <input id="username" placeholder="Goob_Builder_01" required />
+        </div>
+        <div class="input-group">
+          <label>SUNUCU ADRESİ (IP / Domain)</label>
+          <input id="host" placeholder="127.0.0.1" required />
+        </div>
+        <div class="input-group">
+          <label>PORT</label>
+          <input id="port" type="number" value="25565" required />
+        </div>
+        <button id="submitBtn" type="submit" class="btn-submit">Builder Botu Konuşlandır</button>
+      </form>
     </section>
-  </main>
+
+    <!-- Sağ: Aktif Botlar ve Durum -->
+    <section class="panel panel-bots">
+      <div class="panel-title">🤖 Aktif Builder Üniteleri</div>
+      <div id="botList" class="bot-list">
+        <div class="bot-card">Aktif bot bulunmuyor...</div>
+      </div>
+    </section>
+  </div>
 
   <script>
-    const API_BASE = '';
-
+    // ----------------------------------------------------
+    // 1. SAHİPLİK VE GÜVENLİK TOKEN YÖNETİMİ
+    // ----------------------------------------------------
     function getOwnerToken() {
-      const stored = localStorage.getItem('goober_session_token');
-      if (stored) return stored;
       let token = localStorage.getItem('goober_owner_token');
       if (!token) {
-        token = 'GC_' + Math.random().toString(36).slice(2, 10).toUpperCase() + '_' + Date.now().toString(16);
+        token = 'OWNER_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
         localStorage.setItem('goober_owner_token', token);
       }
       return token;
     }
+    const myOwnerToken = getOwnerToken();
 
-    const statusEl = document.getElementById('status');
-    const botListEl = document.getElementById('botList');
-    const form = document.getElementById('builderForm');
-    const submitBtn = document.getElementById('submitBtn');
+    // ----------------------------------------------------
+    // 2. SPARKLINE TELEMETRİ GRAFİKLERİ
+    // ----------------------------------------------------
+    class Sparkline {
+      constructor(canvasId, color) {
+        this.canvas = document.getElementById(canvasId);
+        this.ctx = this.canvas.getContext('2d');
+        this.color = color;
+        this.data = new Array(30).fill(0);
+        this.resize();
+      }
 
-    function setStatus(message, kind = 'info') {
-      statusEl.className = `status ${kind}`;
-      statusEl.textContent = message;
-    }
+      resize() {
+        if (!this.canvas) return;
+        this.canvas.width = this.canvas.offsetWidth * window.devicePixelRatio;
+        this.canvas.height = this.canvas.offsetHeight * window.devicePixelRatio;
+        this.ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+      }
 
-    async function loadBots() {
-      try {
-        const res = await fetch(`${API_BASE}/api/bots`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        const bots = Array.isArray(data?.bots) ? data.bots : [];
-        const builderBots = bots.filter((bot) => (bot.profile || 'stable') === 'builder' || bot.username?.toLowerCase().includes('builder'));
+      push(value) {
+        this.data.shift();
+        this.data.push(value);
+        this.render();
+      }
 
-        if (builderBots.length === 0) {
-          botListEl.innerHTML = '<div class="bot-item"><div><div class="bot-name">Henüz builder bot yok</div><div class="bot-meta">Yeni bir builder bot başlatın.</div></div><span class="pill">Beklemede</span></div>';
-          return;
-        }
+      render() {
+        const w = this.canvas.offsetWidth;
+        const h = this.canvas.offsetHeight;
+        const max = Math.max(...this.data, 10);
 
-        botListEl.innerHTML = builderBots.map((bot) => `
-          <div class="bot-item">
-            <div>
-              <div class="bot-name">${bot.username || 'Builder Bot'}</div>
-              <div class="bot-meta">${bot.host || '-'}:${bot.port || 25565}</div>
-            </div>
-            <span class="pill">${bot.nodeId || 'local'}</span>
-          </div>
-        `).join('');
-      } catch (err) {
-        botListEl.innerHTML = '<div class="bot-item"><div><div class="bot-name">Liste alınamadı</div><div class="bot-meta">Backend bağlantısını kontrol edin.</div></div></div>';
+        this.ctx.clearRect(0, 0, w, h);
+        this.ctx.beginPath();
+        this.ctx.strokeStyle = this.color;
+        this.ctx.lineWidth = 2;
+
+        const step = w / (this.data.length - 1);
+        this.data.forEach((val, i) => {
+          const x = i * step;
+          const y = h - (val / max) * (h - 8) - 4;
+          if (i === 0) this.ctx.moveTo(x, y);
+          else this.ctx.lineTo(x, y);
+        });
+
+        this.ctx.stroke();
       }
     }
 
-    form.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const username = document.getElementById('username').value.trim();
-      const host = document.getElementById('host').value.trim();
-      const port = Number(document.getElementById('port').value || 25565);
+    const cpuGraph = new Sparkline('cpuChart', '#06b6d4');
+    const ramGraph = new Sparkline('ramChart', '#8b5cf6');
+    const gpuGraph = new Sparkline('gpuChart', '#ec4899');
+    const loadGraph = new Sparkline('loadChart', '#10b981');
 
-      if (!username || !host) {
-        setStatus('Kullanıcı adı ve sunucu adresi zorunlu.', 'error');
+    // Telemetri Döngüsü
+    async function fetchTelemetry() {
+      try {
+        const res = await fetch('/api/system/stats');
+        const data = await res.json();
+
+        document.getElementById('cpuText').innerText = `${data.cpu.toFixed(1)}%`;
+        document.getElementById('ramText').innerText = `${data.ram.used} MB`;
+        document.getElementById('gpuText').innerText = `${data.gpu.toFixed(1)}%`;
+        document.getElementById('loadText').innerText = data.load.toFixed(2);
+
+        cpuGraph.push(data.cpu);
+        ramGraph.push(data.ram.percentage);
+        gpuGraph.push(data.gpu);
+        loadGraph.push(data.load * 10);
+      } catch (err) {
+        // Önizleme için Sahte Telemetri
+        const fakeCpu = 12 + Math.random() * 15;
+        const fakeRam = 420 + Math.random() * 50;
+        const fakeGpu = 6 + Math.random() * 10;
+        
+        document.getElementById('cpuText').innerText = `${fakeCpu.toFixed(1)}%`;
+        document.getElementById('ramText').innerText = `${fakeRam.toFixed(0)} MB`;
+        document.getElementById('gpuText').innerText = `${fakeGpu.toFixed(1)}%`;
+        document.getElementById('loadText').innerText = (fakeCpu / 20).toFixed(2);
+
+        cpuGraph.push(fakeCpu);
+        ramGraph.push((fakeRam / 1024) * 100);
+        gpuGraph.push(fakeGpu);
+        loadGraph.push((fakeCpu / 20) * 10);
+      }
+    }
+    setInterval(fetchTelemetry, 1000);
+
+    // ----------------------------------------------------
+    // 3. CANLI CANVA RENDERER & BOT HUD UPDATE
+    // ----------------------------------------------------
+    let currentSelectedBot = null;
+    const canvas = document.getElementById('botCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function renderBotViewportMock(bot) {
+      if (!bot) return;
+      
+      const w = canvas.width = canvas.offsetWidth;
+      const h = canvas.height = canvas.offsetHeight;
+
+      // Arka plan (Oyun Görünümü Simülasyonu / Raycast Render)
+      ctx.fillStyle = "#1e293b";
+      ctx.fillRect(0, 0, w, h);
+
+      // Gökyüzü / Blok Düzlemi Simülasyonu
+      ctx.fillStyle = "#0f172a";
+      ctx.fillRect(0, h / 2, w, h / 2);
+
+      // Botun baktığı hedef bloğu ortada çiz
+      ctx.strokeStyle = "#06b6d4";
+      ctx.lineWidth = 3;
+      ctx.strokeRect(w / 2 - 40, h / 2 - 40, 80, 80);
+
+      ctx.fillStyle = "#8b5cf6";
+      ctx.font = "12px 'JetBrains Mono'";
+      ctx.fillText(`TARGET: ${bot.currentTargetBlock || 'minecraft:stone'}`, w / 2 - 60, h / 2 + 60);
+
+      // HUD Verilerini Güncelle
+      document.getElementById('hudCoords').innerText = `XYZ: ${bot.x.toFixed(1)} / ${bot.y.toFixed(1)} / ${bot.z.toFixed(1)}`;
+      document.getElementById('hudFacing').innerText = `BAKIŞ: YAW ${bot.yaw || 0}°`;
+      document.getElementById('hudTargetBlock').innerText = bot.currentTargetBlock || 'minecraft:stone';
+      document.getElementById('hudHandItem').innerText = `🖐️ ELDEKİ: ${bot.heldItem || 'minecraft:oak_planks'}`;
+    }
+
+    // ----------------------------------------------------
+    // 4. BOT LİSTESİ VE SAHİPLİK KONTROLLÜ DURDURMA
+    // ----------------------------------------------------
+    async function fetchBotList() {
+      try {
+        const res = await fetch('/api/bots');
+        const bots = await res.json();
+        renderBotList(bots);
+      } catch (err) {
+        // Fallback Mock Veri (Demo Gösterimi İçin)
+        renderBotList([
+          {
+            id: "bot_1",
+            username: "Goob_Builder_01",
+            ownerToken: myOwnerToken, // Bu tarayıcı açtı
+            x: 124.5, y: 64.0, z: -312.2,
+            yaw: 180,
+            status: "İnşa Ediyor",
+            currentTargetBlock: "minecraft:glass",
+            heldItem: "minecraft:glass"
+          },
+          {
+            id: "bot_2",
+            username: "Alex_Miner",
+            ownerToken: "ANOTHER_USER_TOKEN_999", // Başka kullanıcı açtı
+            x: 88.1, y: 12.0, z: -105.4,
+            yaw: 90,
+            status: "Bekliyor",
+            currentTargetBlock: "minecraft:air",
+            heldItem: "minecraft:iron_pickaxe"
+          }
+        ]);
+      }
+    }
+
+    function renderBotList(bots) {
+      const container = document.getElementById('botList');
+      if (!bots || bots.length === 0) {
+        container.innerHTML = '<div class="bot-card">Aktif konuşlandırılmış bot yok.</div>';
         return;
       }
 
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Başlatılıyor...';
-      setStatus('Builder bot başlatılıyor...', 'info');
+      container.innerHTML = bots.map(bot => {
+        const isOwner = bot.ownerToken === myOwnerToken;
+
+        return `
+          <div class="bot-card">
+            <div class="bot-card-header">
+              <div class="bot-info">
+                <div class="bot-avatar">${bot.username.substring(0,2).toUpperCase()}</div>
+                <div>
+                  <div style="font-weight:800; font-size:0.95rem">${bot.username}</div>
+                  <div style="font-size:0.7rem; color:${isOwner ? 'var(--success)' : 'var(--warning)'}">
+                    ${isOwner ? '🔑 SEN BAŞLATTIN (SAHİBİSİN)' : '🔒 BAŞKA KULLANICI BAŞLATTI'}
+                  </div>
+                </div>
+              </div>
+              <span class="status-badge">${bot.status}</span>
+            </div>
+
+            <div class="bot-details">
+              <div class="bot-details-item">
+                <span class="bot-details-label">KOORDİNAT</span>
+                <span class="bot-details-val">${bot.x.toFixed(0)}, ${bot.y.toFixed(0)}, ${bot.z.toFixed(0)}</span>
+              </div>
+              <div class="bot-details-item">
+                <span class="bot-details-label">UĞRAŞTIĞI BLOK</span>
+                <span class="bot-details-val">${bot.currentTargetBlock || 'N/A'}</span>
+              </div>
+              <div class="bot-details-item">
+                <span class="bot-details-label">ELDEKİ EŞYA</span>
+                <span class="bot-details-val">${bot.heldItem || 'Boş'}</span>
+              </div>
+            </div>
+
+            <div class="bot-actions">
+              <button class="btn-view" onclick="focusBotVision('${bot.id}', '${bot.username}')">👁️ Bakış Açısına Geç</button>
+              <button class="btn-stop" ${!isOwner ? 'disabled title="Sadece bu botu oluşturan kişi durdurabilir!"' : ''} onclick="stopBot('${bot.id}')">
+                🛑 DURDUR
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Seçili bot varsa viewport'u güncelle
+      if (currentSelectedBot) {
+        const found = bots.find(b => b.id === currentSelectedBot.id);
+        if (found) renderBotViewportMock(found);
+      } else if (bots.length > 0) {
+        focusBotVision(bots[0].id, bots[0].username);
+      }
+    }
+
+    function focusBotVision(botId, username) {
+      currentSelectedBot = { id: botId, username };
+      document.getElementById('activeBotTag').innerText = `SEÇİLİ BOT: ${username}`;
+      fetchBotList();
+    }
+
+    // ----------------------------------------------------
+    // 5. BOT BAŞLATMA VE DURDURMA API ÇAĞRILARI
+    // ----------------------------------------------------
+    document.getElementById('builderForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('username').value;
+      const host = document.getElementById('host').value;
+      const port = document.getElementById('port').value;
 
       try {
-        const res = await fetch(`${API_BASE}/api/bots/create`, {
+        await fetch('/api/bots/spawn', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, host, port, ownerToken: getOwnerToken(), profile: 'builder' })
+          body: JSON.stringify({
+            username, host, port: parseInt(port),
+            ownerToken: myOwnerToken // Sahiplik tokenini gönder
+          })
         });
-        const data = await res.json();
+        alert(`🚀 ${username} başarıyla konuşlandırıldı!`);
+        fetchBotList();
+      } catch (err) {
+        alert("Bot başlatılırken hata oluştu!");
+      }
+    };
 
-        if (!res.ok || !data?.success) {
-          throw new Error(data?.message || 'Bot başlatılamadı.');
+    async function stopBot(botId) {
+      if (!confirm("Bu botu durdurmak istediğinize emin misiniz?")) return;
+
+      try {
+        const res = await fetch('/api/bots/stop', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'X-Owner-Token': myOwnerToken // Token doğrulaması
+          },
+          body: JSON.stringify({ botId })
+        });
+
+        if (res.status === 403) {
+          alert("⛔ YETKİSİZ İŞLEM: Bu botu sadece başlatan kişi durdurabilir!");
+          return;
         }
 
-        setStatus(`Builder bot başlatıldı: ${username}`, 'success');
-        form.reset();
-        document.getElementById('port').value = '25565';
-        await loadBots();
+        alert("🛑 Bot başarıyla durduruldu.");
+        fetchBotList();
       } catch (err) {
-        setStatus(err.message || 'Bağlantı hatası.', 'error');
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Builder Bot Başlat';
+        alert("Bot durdurulurken hata oluştu!");
       }
-    });
+    }
 
-    window.addEventListener('load', () => {
-      loadBots();
-      setStatus('Hazır. Builder botu başlatmak için formu doldur.', 'info');
-    });
+    setInterval(fetchBotList, 2000);
+    fetchBotList();
   </script>
 </body>
 </html>

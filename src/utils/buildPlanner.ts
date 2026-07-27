@@ -1,3 +1,5 @@
+import vec3, { Vec3 } from "vec3";
+
 export type BuildPlanStepType = "chat" | "look" | "move" | "equip" | "place" | "wait";
 
 export interface BuildPlanStep {
@@ -5,32 +7,53 @@ export interface BuildPlanStep {
   message?: string;
   target?: string;
   direction?: "forward" | "back";
+  // Manuel/Komut yerleştirmede hassas koordinat için:
+  position?: Vec3;
+  blockType?: string;
 }
+
+export interface BlockTarget {
+  x: number;
+  y: number;
+  z: number;
+  block: string;
+}
+
+// MAKSİMUM BLOK SINIRI (Güvenlik / Sunucu Koruması)
+export const MAX_BUILD_BLOCKS = 228;
 
 function normalizeStepText(value: string): string {
   return value.replace(/^[-*0-9.]+\s*/, "").trim();
 }
 
-function inferBuildItem(detail: string): string {
+export function inferBuildItem(detail: string): string {
   const lower = detail.toLowerCase();
 
   if (lower.includes("cam") || lower.includes("pencere") || lower.includes("glass")) {
     return "minecraft:glass";
   }
-
   if (lower.includes("ışık") || lower.includes("torch")) {
     return "minecraft:torch";
   }
-
   if (lower.includes("masa") || lower.includes("craft")) {
     return "minecraft:crafting_table";
   }
-
-  if (lower.includes("duvar") || lower.includes("blok") || lower.includes("kule")) {
+  if (lower.includes("duvar") || lower.includes("blok") || lower.includes("kule") || lower.includes("taş")) {
     return "minecraft:stone";
   }
 
   return "minecraft:oak_planks";
+}
+
+/**
+  AI veya Istek Tarafından Üretilen Yapı Matrisini 228 Blok ile Sınırlar
+ */
+export function sanitizeBlockList(blocks: BlockTarget[]): BlockTarget[] {
+  if (blocks.length > MAX_BUILD_BLOCKS) {
+    console.warn(`[GooberCraft] İstek ${blocks.length} blok içeriyor. ${MAX_BUILD_BLOCKS} sınırına kırpıldı.`);
+    return blocks.slice(0, MAX_BUILD_BLOCKS);
+  }
+  return blocks;
 }
 
 export function createBuildPlanSteps(request: string, aiPlan?: string): BuildPlanStep[] {
@@ -67,23 +90,18 @@ export function createBuildPlanSteps(request: string, aiPlan?: string): BuildPla
     if (lower.includes("malzeme") || lower.includes("topla") || lower.includes("equip")) {
       return { type: "equip", target: inferBuildItem(request) };
     }
-
     if (lower.includes("temel") || lower.includes("kur") || lower.includes("başla")) {
       return { type: "place", target: "base" };
     }
-
     if (lower.includes("duvar") || lower.includes("yükse") || lower.includes("blok")) {
       return { type: "place", target: "wall" };
     }
-
     if (lower.includes("bak") || lower.includes("yön")) {
       return { type: "look", target: "front" };
     }
-
     if (lower.includes("yürü") || lower.includes("hareket")) {
       return { type: "move", direction: "forward" };
     }
-
     if (lower.includes("bekle") || lower.includes("dur")) {
       return { type: "wait" };
     }
