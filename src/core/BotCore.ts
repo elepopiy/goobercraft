@@ -133,6 +133,7 @@ export class BotCore {
 
     this.bus.on("_raw_error", (err: Error) => {
       Logger.error("BotCore", "bağlantı hatası:", err);
+      this.handleDisconnect();
     });
   }
 

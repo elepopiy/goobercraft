@@ -105,6 +105,7 @@ class BotCore {
         });
         this.bus.on("_raw_error", (err) => {
             Logger_1.Logger.error("BotCore", "bağlantı hatası:", err);
+            this.handleDisconnect();
         });
     }
     connect() {
