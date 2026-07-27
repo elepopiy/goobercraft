@@ -42,6 +42,7 @@ export class ProtocolManager {
     client.on("error", (err: Error) => this.bus.emit("_raw_error", err));
     client.on("kick_disconnect", (data: any) => this.bus.emit("_raw_kick", data));
     client.on("state", (newState: string) => this.bus.emit("_raw_state", newState));
+    client.on("playerJoin", () => this.bus.emit("_raw_playerJoin"));
 
     client.on("packet", (data: any, meta: { name: string; state: string }) => {
       this.bus.emit(`packet:${meta.name}`, data, meta);

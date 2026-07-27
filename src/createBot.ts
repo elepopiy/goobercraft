@@ -126,13 +126,27 @@ export async function createBot(options: BotOptions): Promise<Bot> {
     id: bot.getId(),
     username: resolved.username,
     nodeId: assignedNodeId,
-    online: true,
-    createdAt: bot.getCreatedAt()
+    online: false,
+    createdAt: bot.getCreatedAt(),
+    host: resolved.host,
+    port: resolved.port,
+    profile: resolved.profile ?? "stable"
+  } as any);
+
+  bot.on("login", () => {
+    const record = manager.bots.get(bot.getId());
+    if (record) {
+      (record as any).online = true;
+    }
   });
 
   // Bot kendi kendine düşerse (disconnect/kick/hata) kayıt defterinden de düşür,
   // aksi halde "hayalet" instance'lar bellekte birikir.
   bot.once("end", () => {
+    const record = manager.bots.get(bot.getId());
+    if (record) {
+      (record as any).online = false;
+    }
     removeBotInstance(bot.getId());
   });
 

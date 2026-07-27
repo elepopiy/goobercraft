@@ -154,8 +154,10 @@ class BotController {
             id: b.id || b._id || b.botId,
             username: b.username,
             host: b.host,
+            port: b.port,
             nodeId: b.nodeId || b.node_id,
             ownerToken: b.ownerToken,
+            profile: b.profile || "stable",
             isSystem: false
         }));
         const systemBots = (0, nodes_1.getNodesList)().flatMap((node) => (0, systemBots_1.getSystemBotsForNode)(node));

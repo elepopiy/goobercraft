@@ -17,12 +17,16 @@ export class LoginManager {
   public dimension: string | number | null = null;
   public loggedIn = false;
 
+  private hasEnteredPlayState = false;
+  private loginEmitted = false;
+
   constructor(
     private readonly bus: EventBus,
     private readonly protocol: ProtocolManager,
     private readonly options: ResolvedBotOptions
   ) {
     this.bus.on("_raw_state", (state: string) => this.handleStateChange(state));
+    this.bus.on("_raw_playerJoin", () => this.tryEmitLogin());
     this.bus.on("packet:login", (data: any) => this.handleJoinGame(data));
     this.bus.on("packet:respawn", (data: any) => this.handleRespawnGamemode(data));
     this.bus.on("packet:server_data", () => {
@@ -31,14 +35,24 @@ export class LoginManager {
   }
 
   private handleStateChange(state: string): void {
-    Logger.debug("LoginManager", `protokol durumu değişti: ${state}`);
+    Logger.info("LoginManager", `protokol durumu değişti: ${state}`);
     if (state === "configuration") {
       this.sendClientInformation();
     }
-    if (state === "play" && !this.loggedIn) {
-      this.loggedIn = true;
-      this.bus.emit("login");
+    if (state === "play") {
+      this.hasEnteredPlayState = true;
+      this.tryEmitLogin();
     }
+  }
+
+  private tryEmitLogin(): void {
+    if (this.loginEmitted || !this.hasEnteredPlayState) {
+      return;
+    }
+
+    this.loginEmitted = true;
+    this.loggedIn = true;
+    this.bus.emit("login");
   }
 
   private sendClientInformation(): void {
@@ -72,10 +86,8 @@ export class LoginManager {
     this.dimension = data.dimension ?? data.worldName ?? null;
     Logger.info("LoginManager", `Oyuna katıldı. entityId=${this.playerEntityId}, gamemode=${this.gamemode}`);
 
-    // 1.20.2 öncesi sürümlerde configuration state'i yoktur, join_game
-    // direkt play state'inde gelir; bu durumda login zaten state
-    // handler'ında tetiklenmiş olacaktır.
     this.sendClientInformation();
+    this.tryEmitLogin();
   }
 
   private handleRespawnGamemode(data: any): void {

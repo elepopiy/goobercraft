@@ -173,8 +173,10 @@ export class BotController {
       id: b.id || b._id || b.botId,
       username: b.username,
       host: b.host,
+      port: b.port,
       nodeId: b.nodeId || b.node_id,
       ownerToken: b.ownerToken,
+      profile: b.profile || "stable",
       isSystem: false
     }));
 

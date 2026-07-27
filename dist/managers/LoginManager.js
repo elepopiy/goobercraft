@@ -18,11 +18,14 @@ class LoginManager {
     gamemode = 0;
     dimension = null;
     loggedIn = false;
+    hasEnteredPlayState = false;
+    loginEmitted = false;
     constructor(bus, protocol, options) {
         this.bus = bus;
         this.protocol = protocol;
         this.options = options;
         this.bus.on("_raw_state", (state) => this.handleStateChange(state));
+        this.bus.on("_raw_playerJoin", () => this.tryEmitLogin());
         this.bus.on("packet:login", (data) => this.handleJoinGame(data));
         this.bus.on("packet:respawn", (data) => this.handleRespawnGamemode(data));
         this.bus.on("packet:server_data", () => {
@@ -30,14 +33,22 @@ class LoginManager {
         });
     }
     handleStateChange(state) {
-        Logger_1.Logger.debug("LoginManager", `protokol durumu değişti: ${state}`);
+        Logger_1.Logger.info("LoginManager", `protokol durumu değişti: ${state}`);
         if (state === "configuration") {
             this.sendClientInformation();
         }
-        if (state === "play" && !this.loggedIn) {
-            this.loggedIn = true;
-            this.bus.emit("login");
+        if (state === "play") {
+            this.hasEnteredPlayState = true;
+            this.tryEmitLogin();
         }
+    }
+    tryEmitLogin() {
+        if (this.loginEmitted || !this.hasEnteredPlayState) {
+            return;
+        }
+        this.loginEmitted = true;
+        this.loggedIn = true;
+        this.bus.emit("login");
     }
     sendClientInformation() {
         try {
@@ -69,10 +80,8 @@ class LoginManager {
         this.gamemode = data.gameMode ?? data.gamemode ?? 0;
         this.dimension = data.dimension ?? data.worldName ?? null;
         Logger_1.Logger.info("LoginManager", `Oyuna katıldı. entityId=${this.playerEntityId}, gamemode=${this.gamemode}`);
-        // 1.20.2 öncesi sürümlerde configuration state'i yoktur, join_game
-        // direkt play state'inde gelir; bu durumda login zaten state
-        // handler'ında tetiklenmiş olacaktır.
         this.sendClientInformation();
+        this.tryEmitLogin();
     }
     handleRespawnGamemode(data) {
         if (data.gamemode !== undefined)

@@ -111,12 +111,25 @@ async function createBot(options) {
         id: bot.getId(),
         username: resolved.username,
         nodeId: assignedNodeId,
-        online: true,
-        createdAt: bot.getCreatedAt()
+        online: false,
+        createdAt: bot.getCreatedAt(),
+        host: resolved.host,
+        port: resolved.port,
+        profile: resolved.profile ?? "stable"
+    });
+    bot.on("login", () => {
+        const record = managers_1.manager.bots.get(bot.getId());
+        if (record) {
+            record.online = true;
+        }
     });
     // Bot kendi kendine düşerse (disconnect/kick/hata) kayıt defterinden de düşür,
     // aksi halde "hayalet" instance'lar bellekte birikir.
     bot.once("end", () => {
+        const record = managers_1.manager.bots.get(bot.getId());
+        if (record) {
+            record.online = false;
+        }
         removeBotInstance(bot.getId());
     });
     return bot;

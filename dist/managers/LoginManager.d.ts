@@ -17,8 +17,11 @@ export declare class LoginManager {
     gamemode: number;
     dimension: string | number | null;
     loggedIn: boolean;
+    private hasEnteredPlayState;
+    private loginEmitted;
     constructor(bus: EventBus, protocol: ProtocolManager, options: ResolvedBotOptions);
     private handleStateChange;
+    private tryEmitLogin;
     private sendClientInformation;
     finishConfiguration(): void;
     private handleJoinGame;

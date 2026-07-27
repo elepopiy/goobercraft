@@ -43,13 +43,28 @@ class Bot {
         this.profile = options.profile ?? "stable";
         this.groqApiKey = options.groqApiKey;
         this.core.bus.on("chat", (message) => this.handleProfileChat(message));
+        this.core.bus.on("_raw_connect", () => {
+            this.connected = true;
+        });
+        this.core.bus.on("_raw_disconnect", () => {
+            this.connected = false;
+        });
+        this.core.bus.on("_raw_end", () => {
+            this.connected = false;
+        });
+        this.core.bus.on("_raw_error", () => {
+            this.connected = false;
+        });
+        this.core.bus.on("login", () => {
+            this.connected = true;
+        });
     }
     // ============================================================
     // LIFE CYCLE
     // ============================================================
     connect() {
+        this.connected = false;
         this.core.connect();
-        this.connected = true;
         return this;
     }
     end(reason) {
