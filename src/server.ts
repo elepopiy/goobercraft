@@ -17,8 +17,8 @@ app.use("/api", apiRoutes);
 const publicPath = path.join(process.cwd(), "public");
 app.use(express.static(publicPath));
 
-// 3. SPA Fallback (API dışındaki her istek Dashboard HTML'ine gider)
-app.get("*", (_, res) => {
+// 3. SPA Fallback (Express v5 uyumlu wildcard rotası: '*' yerine '/*')
+app.get("/*", (_, res) => {
     res.sendFile(path.join(publicPath, "index.html"));
 });
 
