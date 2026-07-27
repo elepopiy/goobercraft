@@ -8,7 +8,7 @@ const DEFAULTS: Omit<
 > = {
   port: 25565,
   auth: "offline",
-  version: "1.20.4",
+  version: "auto",
   viewDistance: 8,
   checkTimeoutInterval: 30000,
   respawnOnDeath: true,
@@ -133,6 +133,13 @@ export async function createBot(options: BotOptions): Promise<Bot> {
     profile: resolved.profile ?? "stable"
   } as any);
 
+  const markOffline = () => {
+    const record = manager.bots.get(bot.getId());
+    if (record) {
+      (record as any).online = false;
+    }
+  };
+
   bot.on("login", () => {
     const record = manager.bots.get(bot.getId());
     if (record) {
@@ -143,12 +150,14 @@ export async function createBot(options: BotOptions): Promise<Bot> {
   // Bot kendi kendine düşerse (disconnect/kick/hata) kayıt defterinden de düşür,
   // aksi halde "hayalet" instance'lar bellekte birikir.
   bot.once("end", () => {
-    const record = manager.bots.get(bot.getId());
-    if (record) {
-      (record as any).online = false;
-    }
+    markOffline();
     removeBotInstance(bot.getId());
   });
+
+  bot.on("_raw_disconnect", markOffline);
+  bot.on("_raw_error", markOffline);
+  bot.on("_raw_kick", markOffline);
+  bot.on("_raw_end", markOffline);
 
   return bot;
 }

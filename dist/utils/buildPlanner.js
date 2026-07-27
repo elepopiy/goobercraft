@@ -1,6 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.MAX_BUILD_BLOCKS = void 0;
+exports.inferBuildItem = inferBuildItem;
+exports.sanitizeBlockList = sanitizeBlockList;
 exports.createBuildPlanSteps = createBuildPlanSteps;
+// MAKSİMUM BLOK SINIRI (Güvenlik / Sunucu Koruması)
+exports.MAX_BUILD_BLOCKS = 228;
 function normalizeStepText(value) {
     return value.replace(/^[-*0-9.]+\s*/, "").trim();
 }
@@ -15,10 +20,20 @@ function inferBuildItem(detail) {
     if (lower.includes("masa") || lower.includes("craft")) {
         return "minecraft:crafting_table";
     }
-    if (lower.includes("duvar") || lower.includes("blok") || lower.includes("kule")) {
+    if (lower.includes("duvar") || lower.includes("blok") || lower.includes("kule") || lower.includes("taş")) {
         return "minecraft:stone";
     }
     return "minecraft:oak_planks";
+}
+/**
+  AI veya Istek Tarafından Üretilen Yapı Matrisini 228 Blok ile Sınırlar
+ */
+function sanitizeBlockList(blocks) {
+    if (blocks.length > exports.MAX_BUILD_BLOCKS) {
+        console.warn(`[GooberCraft] İstek ${blocks.length} blok içeriyor. ${exports.MAX_BUILD_BLOCKS} sınırına kırpıldı.`);
+        return blocks.slice(0, exports.MAX_BUILD_BLOCKS);
+    }
+    return blocks;
 }
 function createBuildPlanSteps(request, aiPlan) {
     const fallbackSteps = [

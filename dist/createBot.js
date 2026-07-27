@@ -10,7 +10,7 @@ const managers_1 = require("./managers");
 const DEFAULTS = {
     port: 25565,
     auth: "offline",
-    version: "1.20.4",
+    version: "auto",
     viewDistance: 8,
     checkTimeoutInterval: 30000,
     respawnOnDeath: true,
@@ -117,6 +117,12 @@ async function createBot(options) {
         port: resolved.port,
         profile: resolved.profile ?? "stable"
     });
+    const markOffline = () => {
+        const record = managers_1.manager.bots.get(bot.getId());
+        if (record) {
+            record.online = false;
+        }
+    };
     bot.on("login", () => {
         const record = managers_1.manager.bots.get(bot.getId());
         if (record) {
@@ -126,12 +132,13 @@ async function createBot(options) {
     // Bot kendi kendine düşerse (disconnect/kick/hata) kayıt defterinden de düşür,
     // aksi halde "hayalet" instance'lar bellekte birikir.
     bot.once("end", () => {
-        const record = managers_1.manager.bots.get(bot.getId());
-        if (record) {
-            record.online = false;
-        }
+        markOffline();
         removeBotInstance(bot.getId());
     });
+    bot.on("_raw_disconnect", markOffline);
+    bot.on("_raw_error", markOffline);
+    bot.on("_raw_kick", markOffline);
+    bot.on("_raw_end", markOffline);
     return bot;
 }
 //# sourceMappingURL=createBot.js.map

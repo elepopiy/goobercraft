@@ -550,40 +550,40 @@
       }
 
       container.innerHTML = bots.map(bot => {
-        const isOwner = bot.ownerToken === myOwnerToken;
+        const isOwner = (bot.ownerToken || '') === myOwnerToken;
+        const hostText = bot.host ? `${bot.host}:${bot.port || 25565}` : 'Bilinmeyen hedef';
 
         return `
           <div class="bot-card">
             <div class="bot-card-header">
               <div class="bot-info">
-                <div class="bot-avatar">${bot.username.substring(0,2).toUpperCase()}</div>
+                <div class="bot-avatar">${(bot.username || 'B').substring(0,2).toUpperCase()}</div>
                 <div>
-                  <div style="font-weight:800; font-size:0.95rem">${bot.username}</div>
+                  <div style="font-weight:800; font-size:0.95rem">${bot.username || 'Bot'}</div>
                   <div style="font-size:0.7rem; color:${isOwner ? 'var(--success)' : 'var(--warning)'}">
                     ${isOwner ? '🔑 SEN BAŞLATTIN (SAHİBİSİN)' : '🔒 BAŞKA KULLANICI BAŞLATTI'}
                   </div>
                 </div>
               </div>
-              <span class="status-badge">${bot.status}</span>
+              <span class="status-badge">${bot.profile || 'stable'}</span>
             </div>
 
             <div class="bot-details">
               <div class="bot-details-item">
-                <span class="bot-details-label">KOORDİNAT</span>
-                <span class="bot-details-val">${bot.x.toFixed(0)}, ${bot.y.toFixed(0)}, ${bot.z.toFixed(0)}</span>
+                <span class="bot-details-label">HEDEF</span>
+                <span class="bot-details-val">${hostText}</span>
               </div>
               <div class="bot-details-item">
-                <span class="bot-details-label">UĞRAŞTIĞI BLOK</span>
-                <span class="bot-details-val">${bot.currentTargetBlock || 'N/A'}</span>
+                <span class="bot-details-label">DURUM</span>
+                <span class="bot-details-val">${bot.online ? 'ONLINE' : 'OFFLINE'}</span>
               </div>
               <div class="bot-details-item">
-                <span class="bot-details-label">ELDEKİ EŞYA</span>
-                <span class="bot-details-val">${bot.heldItem || 'Boş'}</span>
+                <span class="bot-details-label">NODE</span>
+                <span class="bot-details-val">${bot.nodeId || 'local'}</span>
               </div>
             </div>
 
             <div class="bot-actions">
-              <button class="btn-view" onclick="focusBotVision('${bot.id}', '${bot.username}')">👁️ Bakış Açısına Geç</button>
               <button class="btn-stop" ${!isOwner ? 'disabled title="Sadece bu botu oluşturan kişi durdurabilir!"' : ''} onclick="stopBot('${bot.id}')">
                 🛑 DURDUR
               </button>
@@ -591,14 +591,6 @@
           </div>
         `;
       }).join('');
-
-      // Seçili bot varsa viewport'u güncelle
-      if (currentSelectedBot) {
-        const found = bots.find(b => b.id === currentSelectedBot.id);
-        if (found) renderBotViewportMock(found);
-      } else if (bots.length > 0) {
-        focusBotVision(bots[0].id, bots[0].username);
-      }
     }
 
     function focusBotVision(botId, username) {
@@ -612,23 +604,37 @@
     // ----------------------------------------------------
     document.getElementById('builderForm').onsubmit = async (e) => {
       e.preventDefault();
-      const username = document.getElementById('username').value;
-      const host = document.getElementById('host').value;
-      const port = document.getElementById('port').value;
+      const username = document.getElementById('username').value.trim();
+      const host = document.getElementById('host').value.trim();
+      const port = parseInt(document.getElementById('port').value, 10) || 25565;
+
+      if (!username || !host) {
+        alert('Kullanıcı adı ve sunucu adresi zorunlu.');
+        return;
+      }
 
       try {
-        await fetch('/api/bots/spawn', {
+        const res = await fetch('/api/bots/create', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            username, host, port: parseInt(port),
-            ownerToken: myOwnerToken // Sahiplik tokenini gönder
+            username,
+            host,
+            port,
+            ownerToken: myOwnerToken,
+            profile: 'builder'
           })
         });
+
+        const data = await res.json();
+        if (!res.ok || !data?.success) {
+          throw new Error(data?.message || 'Bot başlatılamadı.');
+        }
+
         alert(`🚀 ${username} başarıyla konuşlandırıldı!`);
         fetchBotList();
       } catch (err) {
-        alert("Bot başlatılırken hata oluştu!");
+        alert(err.message || 'Bot başlatılırken hata oluştu!');
       }
     };
 
@@ -638,22 +644,22 @@
       try {
         const res = await fetch('/api/bots/stop', {
           method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'X-Owner-Token': myOwnerToken // Token doğrulaması
+          headers: {
+            'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ botId })
+          body: JSON.stringify({ id: botId, ownerToken: myOwnerToken })
         });
 
-        if (res.status === 403) {
-          alert("⛔ YETKİSİZ İŞLEM: Bu botu sadece başlatan kişi durdurabilir!");
+        const data = await res.json();
+        if (res.status === 403 || !data?.success) {
+          alert(data?.message || '⛔ YETKİSİZ İŞLEM: Bu botu sadece başlatan kişi durdurabilir!');
           return;
         }
 
-        alert("🛑 Bot başarıyla durduruldu.");
+        alert('🛑 Bot başarıyla durduruldu.');
         fetchBotList();
       } catch (err) {
-        alert("Bot durdurulurken hata oluştu!");
+        alert('Bot durdurulurken hata oluştu!');
       }
     }
 

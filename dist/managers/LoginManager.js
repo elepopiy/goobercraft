@@ -19,6 +19,7 @@ class LoginManager {
     dimension = null;
     loggedIn = false;
     hasEnteredPlayState = false;
+    hasSeenJoinPacket = false;
     loginEmitted = false;
     constructor(bus, protocol, options) {
         this.bus = bus;
@@ -27,6 +28,7 @@ class LoginManager {
         this.bus.on("_raw_state", (state) => this.handleStateChange(state));
         this.bus.on("_raw_playerJoin", () => this.tryEmitLogin());
         this.bus.on("packet:login", (data) => this.handleJoinGame(data));
+        this.bus.on("packet:join_game", (data) => this.handleJoinGame(data));
         this.bus.on("packet:respawn", (data) => this.handleRespawnGamemode(data));
         this.bus.on("packet:server_data", () => {
             /* sunucu meta verisi - şimdilik sadece gözlemleniyor */
@@ -36,6 +38,7 @@ class LoginManager {
         Logger_1.Logger.info("LoginManager", `protokol durumu değişti: ${state}`);
         if (state === "configuration") {
             this.sendClientInformation();
+            this.finishConfiguration();
         }
         if (state === "play") {
             this.hasEnteredPlayState = true;
@@ -43,11 +46,12 @@ class LoginManager {
         }
     }
     tryEmitLogin() {
-        if (this.loginEmitted || !this.hasEnteredPlayState) {
+        if (this.loginEmitted || !this.hasEnteredPlayState || !this.hasSeenJoinPacket) {
             return;
         }
         this.loginEmitted = true;
         this.loggedIn = true;
+        Logger_1.Logger.info("LoginManager", "Bot oyuna giriş yaptı.");
         this.bus.emit("login");
     }
     sendClientInformation() {
@@ -76,6 +80,7 @@ class LoginManager {
         }
     }
     handleJoinGame(data) {
+        this.hasSeenJoinPacket = true;
         this.playerEntityId = data.entityId;
         this.gamemode = data.gameMode ?? data.gamemode ?? 0;
         this.dimension = data.dimension ?? data.worldName ?? null;

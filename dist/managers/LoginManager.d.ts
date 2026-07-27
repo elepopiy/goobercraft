@@ -18,6 +18,7 @@ export declare class LoginManager {
     dimension: string | number | null;
     loggedIn: boolean;
     private hasEnteredPlayState;
+    private hasSeenJoinPacket;
     private loginEmitted;
     constructor(bus: EventBus, protocol: ProtocolManager, options: ResolvedBotOptions);
     private handleStateChange;

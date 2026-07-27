@@ -1,3 +1,12 @@
+import { Express } from "express";
+/**
+ * Express uygulamasını yapılandırır ve döndürür.
+ */
+export declare function createServer(): Express;
+/**
+ * Master sunucusunu başlatır ve node kaydını yapar.
+ */
+export declare function startServer(port?: number): import("http").Server<typeof import("http").IncomingMessage, typeof import("http").ServerResponse>;
 export { createBot } from "./createBot";
 export { Bot } from "./Bot";
 export { EventBus } from "./core/EventBus";
