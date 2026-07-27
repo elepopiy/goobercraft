@@ -54,6 +54,7 @@ export declare class Bot {
     private handleBuildBehavior;
     private findBuildPosition;
     private handleCreativeBuild;
+    private executeBuildPlan;
     private detectNeededItem;
     private findInventoryItem;
     private handleChatBehavior;

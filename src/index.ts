@@ -19,6 +19,7 @@ export { raycast } from "./world/Raycast";
 // Inventory
 export { Window } from "./inventory/Window";
 export { Item } from "./inventory/Item";
+export { createBuildPlanSteps } from "./utils/buildPlanner";
 
 // Pathfinder & Utils
 export { findPath } from "./pathfinder/SimplePathfinder";

@@ -18,6 +18,7 @@ import type { Goal } from "./pathfinder/types";
 import { parseBotProfileAction, type BotProfileAction } from "./utils/botProfiles";
 import { BotProfile } from "./utils/types";
 import { askGroq } from "./utils/groq";
+import { createBuildPlanSteps, type BuildPlanStep } from "./utils/buildPlanner";
 
 const CREATIVE_BUILD_ITEMS = [
   "minecraft:stone",
@@ -262,23 +263,45 @@ export class Bot {
   }
 
   private async handleCreativeBuild(detail: string, position: Vec3): Promise<void> {
-    const targetItemName = this.detectNeededItem(detail);
-    if (targetItemName) {
-      const equipped = this.core.inventoryManager.equip(targetItemName, "hand");
-      if (equipped) {
-        this.chat(`Creative modda ${targetItemName} bulup hazırladım.`);
-      }
-    }
+    const planPrompt = `Builder botu için 10 adımlı kısa bir yapı planı üret: ${detail}. Her adım yeni satırda olsun. Sadece plan metni ver.`;
+    let aiPlan = "";
 
     if (this.groqApiKey) {
-      const prompt = `Builder botu için kısa bir plan üret: ${detail}. Sadece bir cümle yaz.`;
-      const plan = await askGroq(prompt, this.groqApiKey);
-      if (plan) {
-        this.chat(plan);
+      aiPlan = await askGroq(planPrompt, this.groqApiKey);
+      if (aiPlan) {
+        this.chat(aiPlan);
       }
     }
 
-    this.placeBlock(position, new Vec3(0, 1, 0));
+    const steps = createBuildPlanSteps(detail, aiPlan);
+    await this.executeBuildPlan(steps, position);
+  }
+
+  private async executeBuildPlan(steps: BuildPlanStep[], position: Vec3): Promise<void> {
+    for (const step of steps) {
+      switch (step.type) {
+        case "chat":
+          if (step.message) this.chat(step.message);
+          break;
+        case "look":
+          this.lookAt(this.position.offset(0, 0, 1));
+          break;
+        case "move":
+          this.move(step.direction ?? "forward", true);
+          break;
+        case "equip":
+          if (step.target) {
+            const equipped = this.core.inventoryManager.equip(step.target, "hand");
+            if (equipped) this.chat(`Eline ${step.target} aldım.`);
+          }
+          break;
+        case "place":
+          this.placeBlock(position, new Vec3(0, 1, 0));
+          break;
+        case "wait":
+          break;
+      }
+    }
   }
 
   private detectNeededItem(detail: string): string | null {
