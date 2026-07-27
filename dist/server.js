@@ -17,8 +17,8 @@ app.use("/api", router_1.default);
 // 2. Web Paneli Statik Dosyaları
 const publicPath = path_1.default.join(process.cwd(), "public");
 app.use(express_1.default.static(publicPath));
-// 3. SPA Fallback (API dışındaki her istek Dashboard HTML'ine gider)
-app.get("*", (_, res) => {
+// 3. SPA Fallback (Express v5 uyumlu wildcard rotası: '*' yerine '/*')
+app.get("/*", (_, res) => {
     res.sendFile(path_1.default.join(publicPath, "index.html"));
 });
 const PORT = Number(process.env.PORT) || 10000;
